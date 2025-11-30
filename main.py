@@ -123,10 +123,12 @@ class App(ctk.CTk):
             self.license_status_label.configure(text="Licença: Ativa", text_color="green")
             self.document_profile_button.configure(state="normal")
             self.batch_generate_button.configure(state="normal")
+            self.spreadsheet_profile_button.configure(state="normal")
         else:
             self.license_status_label.configure(text="Licença: Inativa", text_color="red")
             self.document_profile_button.configure(state="disabled")
             self.batch_generate_button.configure(state="disabled")
+            self.spreadsheet_profile_button.configure(state="disabled")
 
     def show_license_dialog(self):
         dialog = ctk.CTkInputDialog(text="Insira seu código de licença de 25 dígitos:", title="Ativação de Licença")
