@@ -14,15 +14,6 @@ from batch_generation_frame import BatchGenerationFrame
 from pdf_list_frame import PdfListFrame
 
 
-
-
-
-
-
-
-
-
-
 # --- Main Application Window ---
 
 class App(ctk.CTk):

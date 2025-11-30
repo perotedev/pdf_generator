@@ -46,6 +46,7 @@ class DataManager:
         profile_dict = self._to_dict(profile)
 
         if isinstance(profile, DocumentProfile):
+            # Remove 'name' from the saved data for DocumentProfile
             profile_dict.pop('columns', None)
 
         with open(file_path, 'w', encoding='utf-8') as f:

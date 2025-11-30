@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 import os
+from datetime import datetime
 from typing import List
 
 from data_manager import data_manager
@@ -103,6 +104,3 @@ class PdfListFrame(ctk.CTkFrame):
 
     def refresh_data(self):
         self._load_pdfs()
-
-# Import datetime for formatting
-from datetime import datetime

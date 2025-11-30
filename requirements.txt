@@ -4,3 +4,5 @@ openpyxl
 reportlab
 requests
 wmi
+pdf2image
+Pillow

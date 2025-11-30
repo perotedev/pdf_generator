@@ -2,6 +2,9 @@ import pandas as pd
 import os
 from tkinter import filedialog
 from typing import List, Optional, Tuple
+from pdf2image import convert_from_path
+from PIL import Image, ImageTk
+import io
 
 def select_file(file_types: List[Tuple[str, str]]) -> Optional[str]:
     """Opens a file dialog and returns the selected file path."""
@@ -82,3 +85,21 @@ def open_file_in_explorer(file_path: str):
         dir_path = os.path.dirname(file_path)
         if os.path.exists(dir_path):
             os.startfile(dir_path)
+
+# Constantes para conversão de coordenadas (A4 em mm)
+A4_WIDTH_MM = 210
+A4_HEIGHT_MM = 297
+
+def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
+    """
+    Converte a primeira página de um PDF para um objeto PIL Image.
+    """
+    try:
+        # Converte a primeira página do PDF para uma imagem PIL
+        images = convert_from_path(pdf_path, dpi=dpi, first_page=1, last_page=1, poppler_path="C:/Users/rodri/Poppler/poppler-25.11.0/Library/bin")
+        if images:
+            return images[0]
+        return None
+    except Exception as e:
+        print(f"Erro ao renderizar PDF: {e}")
+        return None

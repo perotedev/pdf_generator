@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 import pandas as pd
+import os
 from typing import List, Optional
 
 from models import SpreadsheetProfile, ColumnMapping, ColumnType
@@ -150,6 +151,3 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
         # Notify main app to refresh lists if necessary
         if hasattr(self.master, 'refresh_data'):
             self.master.refresh_data()
-
-# Import os for basename
-import os
