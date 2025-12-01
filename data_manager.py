@@ -42,7 +42,7 @@ class DataManager:
         raise ValueError("Invalid profile type")
 
     def save_profile(self, profile: T):
-        file_path = self._get_file_path(type(profile), profile.name)
+        file_path = self._get_file_path(type(profile), profile.name).replace(" ", "_")
         profile_dict = self._to_dict(profile)
 
         if isinstance(profile, DocumentProfile):

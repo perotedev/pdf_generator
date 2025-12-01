@@ -59,7 +59,7 @@ def generate_pdf_with_template(
         # Find the column type for formatting
         col_mapping = next((c for c in spreadsheet_profile.columns if c.custom_name == column_name), None)
         
-        if col_mapping and col_mapping.column_type == "monetary":
+        if col_mapping and col_mapping.column_type == "monetario":
             try:
                 value = f"R$ {float(value):.2f}".replace('.', ',')
             except:
@@ -75,20 +75,16 @@ def generate_pdf_with_template(
     # 4. Add Metadata (as requested)
     c.setAuthor(getpass.getuser())
     c.setTitle(os.path.basename(output_path))
-    c.setCreator("PDF Generator Python App")
     
     # Custom metadata (not standard PDF fields, but can be added to the Info dictionary)
     metadata = {
         "CreationDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "ComputerID": platform.node(),
-        "User": getpass.getuser(),
     }
     
     # ReportLab's info dictionary
-    info = c.doc.info
-    info["CreationDate"] = metadata["CreationDate"]
-    info["ComputerID"] = metadata["ComputerID"]
-    info["User"] = metadata["User"]
+    c.setSubject(metadata["CreationDate"])
+    c.setCreator(metadata["ComputerID"])
     
     # 5. Save PDF
     c.save()
