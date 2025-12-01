@@ -118,16 +118,19 @@ def batch_generate_pdfs(
     
     # 4. Iterate over data rows
     for index, row in df.iterrows():
+        if index == 0:
+            continue  # Skip header row if present
+        
         status_callback(f"Processando linha {index + 1} de {len(df)}...")
         
         data_row = {}
-        for custom_name, original_header in custom_to_original.items():
+        for column in spreadsheet_profile.columns:
             # Use .get() to safely access the column, handling case where original_header might not exist
             # due to user error or data change.
-            if original_header in row:
-                data_row[custom_name] = row[original_header]
+            if column.original_header in row:
+                continue
             else:
-                data_row[custom_name] = "" # Default to empty string
+                data_row[column.custom_name] = row[column.index]
         
         # Determine output filename (using the first column's value)
         first_column_value = str(data_row.get(spreadsheet_profile.columns[0].custom_name, "Document"))

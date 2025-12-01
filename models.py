@@ -8,6 +8,7 @@ class ColumnMapping:
     original_header: str
     custom_name: str
     column_type: ColumnType = "texto"
+    index: int = 0
 
 @dataclass
 class SpreadsheetProfile:

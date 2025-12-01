@@ -74,8 +74,9 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
                     ColumnMapping(
                         original_header=h,
                         custom_name=h,
-                        column_type="texto"
-                    ) for h in headers
+                        column_type="texto",
+                        index=i
+                    ) for i, h in enumerate(headers)
                 ]
                 self.profile_name_var.set(os.path.basename(file_path).split('.')[0] + "_Profile")
                 self._update_mapping_display()
