@@ -1,3 +1,4 @@
+from pathlib import Path
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
@@ -19,6 +20,21 @@ from pdf_list_frame import PdfListFrame
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        # --- Ícone da aplicação (janela + barra de tarefas) ---
+        assets_dir = Path(__file__).resolve().parent / "assets"
+        ico_path = assets_dir / "pdf_generator.ico"
+        png_path = assets_dir / "pdf_generator.png"
+        try:
+            if ico_path.exists():
+                # ícone .ico funciona bem no Windows (barra de tarefas)
+                self.iconbitmap(str(ico_path))
+            elif png_path.exists():
+                # fallback usando PhotoImage (útil em outros SOs)
+                self._icon_image = tk.PhotoImage(file=str(png_path))
+                self.iconphoto(True, self._icon_image)
+        except Exception as e:
+            print(f"Não foi possível carregar ícone: {e}")
 
         self.title("PDF Generator")
         self.geometry("1100x700")
