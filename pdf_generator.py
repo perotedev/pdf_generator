@@ -5,6 +5,7 @@ from reportlab.lib.units import mm
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
+from pdf2image import convert_from_path
 import platform
 import getpass
 from typing import Dict, Any
@@ -43,10 +44,16 @@ def generate_pdf_with_template(
     
     # If the user wants to use the PDF as a background, they would need to convert 
     # it to an image first and load it here:
-    # try:
-    #     c.drawImage(ImageReader(document_profile.pdf_path), 0, 0, width=width, height=height)
-    # except Exception:
-    #     pass # Ignore if not an image
+    pages = convert_from_path(document_profile.pdf_path, dpi=200, poppler_path="C:/Users/rodri/Poppler/poppler-25.11.0/Library/bin")
+    temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
+    os.makedirs(temp_dir, exist_ok=True)
+    bg_image_path = os.path.join(temp_dir, "background_temp.png")
+    pages[0].save(bg_image_path, "PNG")
+
+    try:
+        c.drawImage(ImageReader(bg_image_path), 0, 0, width=width, height=height)
+    except Exception:
+        pass # Ignore if not an image
 
     # 3. Add Mapped Data
     c.setFont("Helvetica", 10)
@@ -88,6 +95,7 @@ def generate_pdf_with_template(
     
     # 5. Save PDF
     c.save()
+    os.remove(bg_image_path)
 
 def batch_generate_pdfs(
     spreadsheet_path: str,
