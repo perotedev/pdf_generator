@@ -4,3 +4,5 @@ __pycache__
 *.pyc
 *.pyo  
 dist
+build
+PDF_Generator.spec
