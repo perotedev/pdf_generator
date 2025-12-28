@@ -1,12 +1,10 @@
 from datetime import datetime
-from dateutil import parser
 import pandas as pd
 import os
 from tkinter import filedialog
 from typing import Any, List, Optional, Tuple
 from pdf2image import convert_from_path
-from PIL import Image, ImageTk
-import io
+from PIL import Image
 
 def select_file(file_types: List[Tuple[str, str]]) -> Optional[str]:
     """Opens a file dialog and returns the selected file path."""
@@ -83,56 +81,6 @@ def format_date_value(value: Any, output_type: str) -> str:
     # default: retorna data completa BR
     return dt.strftime("%d/%m/%Y %H:%M")
 
-
-    """
-    Trata campos de data e data/hora de forma extremamente robusta.
-    Suporta: hifens, barras, formatos ISO (YYYY-MM-DD), brasileiros (DD/MM/YYYY) e internacionais.
-    output_type: 'data' -> 'dd/mm/yyyy', 'data e hora' -> 'dd/mm/yy às hh:mm'
-    """
-    if pd.isna(value) or value == "":
-        return ""
-    
-    # Se já for um objeto datetime do pandas/python
-    if isinstance(value, (pd.Timestamp, datetime)):
-        dt = value
-    else:
-        date_str = str(value).strip()
-        try:
-            # O parser.parse é muito mais flexível que o strptime.
-            # dayfirst=True garante que 01/02/2025 seja lido como 1 de Fevereiro (padrão BR).
-            # Ele lida automaticamente com hifens, espaços duplos, ISO, etc.
-            dt = parser.parse(date_str, dayfirst=True)
-        except (ValueError, OverflowError):
-            try:
-                # Fallback final para o pandas caso o parser falhe
-                dt = pd.to_datetime(date_str, dayfirst=True)
-            except:
-                return date_str
-
-    try:
-        if output_type == "data":
-            return dt.strftime("%d/%m/%Y")
-        elif output_type == "data e hora":
-            # %y para ano com 2 dígitos conforme solicitado (dd/mm/yy às hh:mm)
-            return dt.strftime("%d/%m/%y às %H:%M")
-        return str(value)
-    except:
-        return str(value)
-
-# def read_spreadsheet_headers(file_path: str) -> List[str]:
-#     """Reads the first row of a spreadsheet as headers."""
-#     try:
-#         # Read only the first row (header)
-#         df = pd.read_excel(file_path, nrows=1, header=None)
-        
-#         # Extract headers, converting to string and handling potential NaN/None
-#         headers = [str(col) if pd.notna(col) else f"Coluna {i+1}" 
-#                    for i, col in enumerate(df.iloc[0])]
-        
-#         return headers
-#     except Exception as e:
-#         raise Exception(f"Erro ao ler a planilha: {e}")
-
 def open_file_in_explorer(file_path: str):
     """Opens the file or directory in the default file explorer (Windows specific)."""
     if os.path.exists(file_path):
@@ -149,6 +97,18 @@ def open_file_in_explorer(file_path: str):
         if os.path.exists(dir_path):
             os.startfile(dir_path)
 
+def get_poppler__path() -> str:
+    """Retorna o caminho para os binários do Poppler."""
+    # Se estiver rodando como executável (PyInstaller), o Poppler pode estar no _MEIPASS
+    import sys
+    if getattr(sys, 'frozen', False):
+        # No executável, incluiremos o poppler na raiz do pacote
+        base_path = sys._MEIPASS
+        return os.path.join(base_path, "poppler", "Library", "bin")
+    
+    # Em desenvolvimento, usa o caminho na pasta de dados
+    return os.path.join(os.getcwd(), "poppler", "Library", "bin")
+
 # Constantes para conversão de coordenadas (A4 em mm)
 A4_WIDTH_MM = 210
 A4_HEIGHT_MM = 297
@@ -159,7 +119,7 @@ def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
     """
     try:
         # Converte a primeira página do PDF para uma imagem PIL
-        images = convert_from_path(pdf_path, dpi=dpi, first_page=1, last_page=1, poppler_path="C:/Users/rodri/Poppler/poppler-25.11.0/Library/bin")
+        images = convert_from_path(pdf_path, dpi=dpi, first_page=1, last_page=1, poppler_path=get_poppler__path())
         if images:
             return images[0]
         return None
