@@ -20,6 +20,9 @@ class DataManager:
         
         self.pdf_base_dir = os.path.join(docs_dir, "PDF_GENERATOR")
         os.makedirs(self.pdf_base_dir, exist_ok=True)
+        
+        # Diretório do Poppler dentro da pasta base da aplicação
+        self.poppler_dir = os.path.join(self.base_dir, "poppler", "Library", "bin")
 
     def _get_file_path(self, profile_type: Type[T], name: str) -> str:
         # Normalize name to be safe for filenames
@@ -130,6 +133,18 @@ class DataManager:
             return []
         months = [d for d in os.listdir(year_dir) if os.path.isdir(os.path.join(year_dir, d)) and d.isdigit()]
         return sorted(months)
+
+    def get_poppler_path(self) -> str:
+        """Retorna o caminho para os binários do Poppler."""
+        # Se estiver rodando como executável (PyInstaller), o Poppler pode estar no _MEIPASS
+        import sys
+        if getattr(sys, 'frozen', False):
+            # No executável, incluiremos o poppler na raiz do pacote
+            base_path = sys._MEIPASS
+            return os.path.join(base_path, "poppler", "Library", "bin")
+        
+        # Em desenvolvimento, usa o caminho na pasta de dados
+        return self.poppler_dir
 
 # Singleton instance
 data_manager = DataManager()

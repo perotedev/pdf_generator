@@ -45,7 +45,8 @@ def generate_pdf_with_template(
     
     # If the user wants to use the PDF as a background, they would need to convert 
     # it to an image first and load it here:
-    pages = convert_from_path(document_profile.pdf_path, dpi=200, poppler_path="C:/Users/rodri/Poppler/poppler-25.11.0/Library/bin")
+    poppler_path = data_manager.get_poppler_path()
+    pages = convert_from_path(document_profile.pdf_path, dpi=200, poppler_path=poppler_path)
     temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
     os.makedirs(temp_dir, exist_ok=True)
     bg_image_path = os.path.join(temp_dir, "background_temp.png")
