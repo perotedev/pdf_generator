@@ -1,5 +1,10 @@
 import os
 import subprocess
+from dotenv import load_dotenv
+load_dotenv()
+
+API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
+API_KEY = os.getenv("PDF_GENERATOR_ACTIVATE_API_KEY")
 
 def build():
     # Nome do executável
@@ -10,6 +15,10 @@ def build():
     
     # Ícone
     icon_path = os.path.join("assets", "pdf_generator.ico")
+
+    # Criar variáveis permanentes no Windows
+    subprocess.run(["setx", "PDF_GENERATOR_ACTIVATE_API_KEY", API_KEY], check=True)
+    subprocess.run(["setx", "PDF_GENERATOR_ACTIVATE_API_URL", API_URL], check=True)
     
     # Comando base do PyInstaller
     cmd = [

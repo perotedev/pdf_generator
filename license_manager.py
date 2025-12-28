@@ -11,8 +11,8 @@ import os
 
 load_dotenv()
 
-API_URL = os.getenv("API_URL")
-API_KEY = os.getenv("API_KEY")
+API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
+API_KEY = os.getenv("PDF_GENERATOR_ACTIVATE_API_KEY")
 
 class LicenseManager:
     DEVICE_TYPE = "windows" # Fixed for this Python desktop application
