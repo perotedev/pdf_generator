@@ -1,3 +1,4 @@
+import sys
 import requests
 import platform
 import subprocess
@@ -9,7 +10,16 @@ from models import LicenseInfo
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+def load_env():
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    env_path = os.path.join(base_path, ".env")
+    load_dotenv(env_path)
+
+load_env()
 
 API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
 API_KEY = os.getenv("PDF_GENERATOR_ACTIVATE_API_KEY")
