@@ -147,7 +147,7 @@ def batch_generate_pdfs(
         if not safe_filename:
             safe_filename = "Documento"
             
-        output_filename = f"{safe_filename}.pdf"
+        output_filename = f"{safe_filename}_{spreadsheet_profile.name}.pdf"
         output_path = os.path.join(output_dir, output_filename)
         
         # Caso já exista um arquivo com o mesmo nome, adiciona um contador
