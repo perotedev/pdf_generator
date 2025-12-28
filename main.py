@@ -87,7 +87,10 @@ class App(ctk.CTk):
         self.list_frame = PdfListFrame(self, corner_radius=0, fg_color="transparent")
 
         # --- Initial State ---
-        self.select_frame_by_name("spreadsheet_list")
+        if license_manager.is_licensed:
+            self.select_frame_by_name("spreadsheet_list")
+        else:
+            self.select_frame_by_name("list")
         self.update_license_status()
 
     def refresh_data(self):
