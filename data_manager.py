@@ -22,7 +22,7 @@ class DataManager:
         os.makedirs(self.pdf_base_dir, exist_ok=True)
         
         # Diretório do Poppler dentro da pasta base da aplicação
-        self.poppler_dir = os.path.join(self.base_dir, "poppler", "Library", "bin")
+        self.poppler_dir = os.path.join(os.getcwd(), "poppler", "Library", "bin")
 
     def _get_file_path(self, profile_type: Type[T], name: str) -> str:
         # Normalize name to be safe for filenames
