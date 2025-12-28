@@ -1,16 +1,20 @@
 import requests
-import json
 import platform
 import subprocess
 import uuid
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from datetime import datetime
+from typing import Optional
 from data_manager import data_manager
 from models import LicenseInfo
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+API_URL = os.getenv("API_URL")
+API_KEY = os.getenv("API_KEY")
 
 class LicenseManager:
-    # IMPORTANT: Replace with the actual IP address or domain where you deploy the FastAPI service.
-    API_URL = "http://localhost:8000/activate"
     DEVICE_TYPE = "windows" # Fixed for this Python desktop application
 
     def __init__(self):
@@ -68,7 +72,11 @@ class LicenseManager:
         }
 
         try:
-            response = requests.post(self.API_URL, json=payload, timeout=10)
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {API_KEY}",
+            }
+            response = requests.post(API_URL, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             
             response_data = response.json()
