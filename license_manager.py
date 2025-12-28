@@ -52,6 +52,11 @@ class LicenseManager:
             except Exception:
                 self._license_info = None
 
+    def get_expiration_date(self) -> str:
+        if self._license_info and self._license_info.expire_date:
+            return datetime.fromtimestamp(self._license_info.expire_date).strftime("%d/%m/%Y")
+        return "--/--/----"
+
     @property
     def is_licensed(self) -> bool:
         if not self._license_info or not self._license_info.valid:

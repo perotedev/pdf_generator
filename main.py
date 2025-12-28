@@ -74,9 +74,11 @@ class App(ctk.CTk):
 
         # --- License Status ---
         self.license_status_label = ctk.CTkLabel(self.navigation_frame, text="", font=ctk.CTkFont(size=14))
-        self.license_status_label.grid(row=6, column=0, padx=20, pady=10, sticky="s")
+        self.license_status_label.grid(row=6, column=0, padx=20, pady=0, sticky="s")
+        self.license_expiration = ctk.CTkLabel(self.navigation_frame, text="", font=ctk.CTkFont(size=12))
+        self.license_expiration.grid(row=7, column=0, padx=20, pady=0, sticky="s")
         self.license_button = ctk.CTkButton(self.navigation_frame, text="Gerenciar Licença", command=self.show_license_dialog)
-        self.license_button.grid(row=7, column=0, padx=20, pady=20, sticky="s")
+        self.license_button.grid(row=8, column=0, padx=20, pady=20, sticky="s")
 
         # --- Main Frames ---
         self.spreadsheet_list_frame = SpreadsheetProfileListFrame(self, corner_radius=0, fg_color="transparent")
@@ -144,11 +146,13 @@ class App(ctk.CTk):
             self.document_profile_button.configure(state="normal")
             self.batch_generate_button.configure(state="normal")
             self.spreadsheet_profile_button.configure(state="normal")
+            self.license_expiration.configure(text=f"Válido até {license_manager.get_expiration_date()}")
         else:
             self.license_status_label.configure(text="Licença: Inativa", text_color="red")
             self.document_profile_button.configure(state="disabled")
             self.batch_generate_button.configure(state="disabled")
             self.spreadsheet_profile_button.configure(state="disabled")
+            self.license_expiration.configure(text=f"--/--/--")
 
     def show_license_dialog(self):
         dialog = ctk.CTkInputDialog(text="Insira seu código de licença de 25 dígitos:", title="Ativação de Licença")
