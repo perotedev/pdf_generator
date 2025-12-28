@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil import parser
 import pandas as pd
 import os
 from tkinter import filedialog
@@ -41,24 +42,78 @@ def read_spreadsheet_headers(file_path: str, header_row_index: int = 0) -> List[
 
 def format_date_value(value: Any, output_type: str) -> str:
     """
-    Trata campos de data e data/hora suportando múltiplos formatos de entrada.
+    Converte datas para formato brasileiro:
+    - data -> DD/MM/YYYY
+    - data e hora -> DD/MM/YYYY HH:MM
+    """
+    if pd.isna(value) or str(value).strip() == "":
+        return ""
+    
+    dt = None
+
+    if isinstance(value, (pd.Timestamp, datetime)):
+        dt = value
+    else:
+        date_str = str(value).strip()
+        dt = pd.to_datetime(date_str, dayfirst=True, errors="coerce")
+
+        if pd.isna(dt):
+            try:
+                from dateutil import parser
+                dt = parser.parse(date_str, dayfirst=True)
+            except:
+                try:
+                    just_date = date_str.split(" ")[0]
+                    dt = pd.to_datetime(just_date, dayfirst=False)
+                except:
+                    return date_str
+
+    if pd.isna(dt):
+        return ""
+
+    output_type = (output_type or "").strip().lower()
+
+    # ---- FORMATAÇÃO DEFINITIVA ----
+    if output_type in ("data", "date"):
+        return dt.strftime("%d/%m/%Y")
+
+    if output_type in ("data e hora", "data_hora", "datetime", "datahora"):
+        return dt.strftime("%d/%m/%Y às %H:%M")
+
+    # default: retorna data completa BR
+    return dt.strftime("%d/%m/%Y %H:%M")
+
+
+    """
+    Trata campos de data e data/hora de forma extremamente robusta.
+    Suporta: hifens, barras, formatos ISO (YYYY-MM-DD), brasileiros (DD/MM/YYYY) e internacionais.
     output_type: 'data' -> 'dd/mm/yyyy', 'data e hora' -> 'dd/mm/yy às hh:mm'
     """
     if pd.isna(value) or value == "":
         return ""
     
+    # Se já for um objeto datetime do pandas/python
+    if isinstance(value, (pd.Timestamp, datetime)):
+        dt = value
+    else:
+        date_str = str(value).strip()
+        try:
+            # O parser.parse é muito mais flexível que o strptime.
+            # dayfirst=True garante que 01/02/2025 seja lido como 1 de Fevereiro (padrão BR).
+            # Ele lida automaticamente com hifens, espaços duplos, ISO, etc.
+            dt = parser.parse(date_str, dayfirst=True)
+        except (ValueError, OverflowError):
+            try:
+                # Fallback final para o pandas caso o parser falhe
+                dt = pd.to_datetime(date_str, dayfirst=True)
+            except:
+                return date_str
+
     try:
-        # Se já for um objeto datetime do pandas/python
-        if isinstance(value, (pd.Timestamp, datetime)):
-            dt = value
-        else:
-            # Tenta converter string para datetime
-            # O pandas.to_datetime é excelente para lidar com múltiplos formatos automaticamente
-            dt = pd.to_datetime(str(value))
-        
         if output_type == "data":
             return dt.strftime("%d/%m/%Y")
         elif output_type == "data e hora":
+            # %y para ano com 2 dígitos conforme solicitado (dd/mm/yy às hh:mm)
             return dt.strftime("%d/%m/%y às %H:%M")
         return str(value)
     except:

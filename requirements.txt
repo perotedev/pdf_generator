@@ -6,3 +6,4 @@ requests
 wmi
 pdf2image
 Pillow
+python-dateutil

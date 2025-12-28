@@ -72,9 +72,11 @@ def generate_pdf_with_template(
                 try:
                     value = f"R$ {float(value):.2f}".replace('.', ',')
                 except:
-                    pass # Keep original value if conversion fails
-            elif col_mapping.column_type in ["data", "data e hora"]:
-                value = format_date_value(value, col_mapping.column_type)
+                    pass # Mantém o valor original se a conversão falhar
+            elif col_mapping.column_type == "data":
+                value = format_date_value(value, "data")
+            elif col_mapping.column_type == "data e hora":
+                value = format_date_value(value, "data e hora")
         
         # Convert mm coordinates (from top-left) to ReportLab points (from bottom-left)
         # Assuming X is from left, Y is from top. A4 height is 297mm.
