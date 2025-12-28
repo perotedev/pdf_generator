@@ -12,6 +12,7 @@ from typing import Dict, Any
 
 from models import DocumentProfile, SpreadsheetProfile, ColumnType
 from data_manager import data_manager
+from utils import format_date_value
 
 # PDF coordinates are typically measured from the bottom-left corner.
 # ReportLab uses points (1 point = 1/72 inch). 1mm = 2.83465 points.
@@ -66,11 +67,14 @@ def generate_pdf_with_template(
         # Find the column type for formatting
         col_mapping = next((c for c in spreadsheet_profile.columns if c.custom_name == column_name), None)
         
-        if col_mapping and col_mapping.column_type == "monetario":
-            try:
-                value = f"R$ {float(value):.2f}".replace('.', ',')
-            except:
-                pass # Keep original value if conversion fails
+        if col_mapping:
+            if col_mapping.column_type == "monetario":
+                try:
+                    value = f"R$ {float(value):.2f}".replace('.', ',')
+                except:
+                    pass # Keep original value if conversion fails
+            elif col_mapping.column_type in ["data", "data e hora"]:
+                value = format_date_value(value, col_mapping.column_type)
         
         # Convert mm coordinates (from top-left) to ReportLab points (from bottom-left)
         # Assuming X is from left, Y is from top. A4 height is 297mm.
@@ -112,7 +116,9 @@ def batch_generate_pdfs(
     
     # 1. Read Spreadsheet Data
     try:
-        df = pd.read_excel(spreadsheet_path)
+        # Lê a planilha respeitando a linha do cabeçalho definida no perfil
+        header_idx = spreadsheet_profile.header_row
+        df = pd.read_excel(spreadsheet_path, header=header_idx)
     except Exception as e:
         raise Exception(f"Erro ao ler a planilha: {e}")
 
@@ -121,30 +127,33 @@ def batch_generate_pdfs(
     
     generated_count = 0
     
-    # 3. Map custom column names to DataFrame columns
-    custom_to_original = {c.custom_name: c.original_header for c in spreadsheet_profile.columns}
-    
-    # 4. Iterate over data rows
+    # 3. Iterate over data rows
     for index, row in df.iterrows():
-        if index == 0:
-            continue  # Skip header row if present
-        
         status_callback(f"Processando linha {index + 1} de {len(df)}...")
         
         data_row = {}
         for column in spreadsheet_profile.columns:
-            # Use .get() to safely access the column, handling case where original_header might not exist
-            # due to user error or data change.
-            if column.original_header in row:
-                continue
+            # Tenta pegar pelo nome da coluna (original_header) ou pelo índice
+            if column.original_header in df.columns:
+                data_row[column.custom_name] = row[column.original_header]
             else:
-                data_row[column.custom_name] = row[column.index]
+                data_row[column.custom_name] = row.iloc[column.index]
         
-        # Determine output filename (using the first column's value)
-        first_column_value = str(data_row.get(spreadsheet_profile.columns[0].custom_name, "Document"))
-        safe_filename = "".join(c for c in first_column_value if c.isalnum() or c in (' ', '_', '-')).rstrip()
-        output_filename = f"{document_profile.name}_{safe_filename}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+        # Determine output filename (using the chosen title column)
+        title_value = str(data_row.get(document_profile.title_column, "Documento"))
+        safe_filename = "".join(c for c in title_value if c.isalnum() or c in (' ', '_', '-')).rstrip()
+        if not safe_filename:
+            safe_filename = "Documento"
+            
+        output_filename = f"{safe_filename}.pdf"
         output_path = os.path.join(output_dir, output_filename)
+        
+        # Caso já exista um arquivo com o mesmo nome, adiciona um contador
+        counter = 1
+        while os.path.exists(output_path):
+            output_filename = f"{safe_filename}_{counter}.pdf"
+            output_path = os.path.join(output_dir, output_filename)
+            counter += 1
         
         # Generate the PDF
         generate_pdf_with_template(data_row, document_profile, spreadsheet_profile, output_path)

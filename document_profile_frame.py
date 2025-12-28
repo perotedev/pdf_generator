@@ -26,6 +26,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.field_mappings: List[PdfFieldMapping] = []
         
         self.selected_column_to_map_var = ctk.StringVar()
+        self.title_column_var = ctk.StringVar()
         self.x_coord_var = ctk.StringVar(value="0.0")
         self.y_coord_var = ctk.StringVar(value="0.0")
 
@@ -54,6 +55,12 @@ class DocumentProfileFrame(ctk.CTkFrame):
                                                          values=["Selecione um Perfil de Planilha"],
                                                          command=self._on_profile_select)
         self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        ctk.CTkLabel(self.profile_select_frame, text="Coluna para Título do PDF:").grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        self.title_column_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
+                                                   variable=self.title_column_var,
+                                                   values=["Selecione a Coluna"])
+        self.title_column_menu.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
         
         # Mapping Input
         self.mapping_input_frame = ctk.CTkFrame(self)
@@ -107,11 +114,14 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.pdf_path = profile.pdf_path
         self.field_mappings = profile.field_mappings
         self.spreadsheet_profile_name_var.set(profile.spreadsheet_profile_name)
+        self.title_column_var.set(profile.title_column)
         
         self.profile_name_entry.configure(state="disabled") # Prevent name change during edit
         self.select_pdf_button.configure(state="disabled", text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
         self.save_button.configure(text="Salvar Alterações", command=lambda: self._save_profile(is_editing=True))
         self._render_pdf_image() # Render the PDF for visual editing
+        self._on_profile_select(profile.spreadsheet_profile_name) # Load columns for menus
+        self.title_column_var.set(profile.title_column) # Restore title column after menu load
         self._update_mapping_display()
 
     def clear_form(self):
@@ -146,9 +156,13 @@ class DocumentProfileFrame(ctk.CTkFrame):
             column_names = [c.custom_name for c in selected_profile.columns]
             self.column_menu.configure(values=column_names)
             self.selected_column_to_map_var.set(column_names[0] if column_names else "Selecione a Coluna")
+            self.title_column_menu.configure(values=column_names)
+            self.title_column_var.set(column_names[0] if column_names else "Selecione a Coluna")
         else:
             self.column_menu.configure(values=["Selecione a Coluna"])
             self.selected_column_to_map_var.set("Selecione a Coluna")
+            self.title_column_menu.configure(values=["Selecione a Coluna"])
+            self.title_column_var.set("Selecione a Coluna")
         
         # Do NOT clear existing mappings here, as it might be an edit operation.
         # The clear is handled by clear_form or load_profile_for_editing.
@@ -361,7 +375,8 @@ class DocumentProfileFrame(ctk.CTkFrame):
         profile = DocumentProfile(
             name=profile_name,
             pdf_path=self.pdf_path,
-            spreadsheet_profile_name=spreadsheet_profile_name,
+            spreadsheet_profile_name=self.spreadsheet_profile_name_var.get(),
+            title_column=self.title_column_var.get(),
             field_mappings=self.field_mappings
         )
         data_manager.save_profile(profile)

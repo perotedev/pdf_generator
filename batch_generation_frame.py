@@ -130,3 +130,6 @@ class BatchGenerationFrame(ctk.CTkFrame):
         finally:
             self.generate_button.configure(state="normal", text="GERAR DOCUMENTOS EM LOTE")
             self._update_generate_button_state()
+    
+    def load_profiles(self):
+        self._load_profiles()

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Literal
 
-ColumnType = Literal["texto", "numero", "monetario", "data"]
+ColumnType = Literal["texto", "numero", "monetario", "data", "data e hora"]
 
 @dataclass
 class ColumnMapping:
@@ -13,6 +13,7 @@ class ColumnMapping:
 @dataclass
 class SpreadsheetProfile:
     name: str
+    header_row: int = 1
     columns: List[ColumnMapping] = field(default_factory=list)
 
 @dataclass
@@ -26,6 +27,7 @@ class DocumentProfile:
     name: str
     pdf_path: str
     spreadsheet_profile_name: str
+    title_column: str = ""
     field_mappings: List[PdfFieldMapping] = field(default_factory=list)
 
 @dataclass

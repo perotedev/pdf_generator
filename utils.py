@@ -1,7 +1,8 @@
+from datetime import datetime
 import pandas as pd
 import os
 from tkinter import filedialog
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 from pdf2image import convert_from_path
 from PIL import Image, ImageTk
 import io
@@ -14,36 +15,18 @@ def select_file(file_types: List[Tuple[str, str]]) -> Optional[str]:
     )
     return file_path if file_path else None
 
-def read_spreadsheet_headers(file_path: str) -> List[str]:
+def read_spreadsheet_headers(file_path: str, header_row_index: int = 0) -> List[str]:
     """
-    Lê um Excel ignorando a primeira linha e pegando o primeiro header válido
-    a partir da segunda linha (linha real sem células mescladas),
-    utilizando apenas pandas.
+    Lê os cabeçalhos de uma planilha Excel baseando-se no índice da linha fornecido (0-indexed).
     """
     try:
+        # Lê a planilha sem cabeçalho para pegar a linha específica
         df = pd.read_excel(file_path, header=None)
-
-        def is_merged_row(row) -> bool:
-            """
-            Detecta linhas com células mescladas baseando-se no comportamento do pandas:
-            valores mesclados são repetidos em sequência, geralmente com 1 único valor.
-            """
-            unique_vals = set(row.dropna())
-            return len(unique_vals) <= 1
-
-        header_row = None
-
-        # Começar da segunda linha (índice 1)
-        for i in range(1, len(df)):
-            row = df.iloc[i]
-            if not is_merged_row(row):
-                header_row = i
-                break
-
-        if header_row is None:
-            raise Exception("Nenhuma linha válida encontrada para header.")
-
-        row = df.iloc[header_row]
+        
+        if header_row_index >= len(df):
+            raise Exception(f"A linha {header_row_index + 1} não existe na planilha.")
+            
+        row = df.iloc[header_row_index]
 
         # Converte para strings e substitui NaN
         headers = [
@@ -55,6 +38,31 @@ def read_spreadsheet_headers(file_path: str) -> List[str]:
 
     except Exception as e:
         raise Exception(f"Erro ao ler a planilha: {e}")
+
+def format_date_value(value: Any, output_type: str) -> str:
+    """
+    Trata campos de data e data/hora suportando múltiplos formatos de entrada.
+    output_type: 'data' -> 'dd/mm/yyyy', 'data e hora' -> 'dd/mm/yy às hh:mm'
+    """
+    if pd.isna(value) or value == "":
+        return ""
+    
+    try:
+        # Se já for um objeto datetime do pandas/python
+        if isinstance(value, (pd.Timestamp, datetime)):
+            dt = value
+        else:
+            # Tenta converter string para datetime
+            # O pandas.to_datetime é excelente para lidar com múltiplos formatos automaticamente
+            dt = pd.to_datetime(str(value))
+        
+        if output_type == "data":
+            return dt.strftime("%d/%m/%Y")
+        elif output_type == "data e hora":
+            return dt.strftime("%d/%m/%y às %H:%M")
+        return str(value)
+    except:
+        return str(value)
 
 # def read_spreadsheet_headers(file_path: str) -> List[str]:
 #     """Reads the first row of a spreadsheet as headers."""

@@ -17,6 +17,7 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
         self.file_path: Optional[str] = None
         self.column_mappings: List[ColumnMapping] = []
         self.profile_name_var = ctk.StringVar()
+        self.header_row_var = ctk.StringVar(value="1")
 
         # --- Widgets ---
         ctk.CTkLabel(self, text="Gerenciamento de Perfis de Planilha", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
@@ -33,6 +34,13 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
         self.profile_name_entry = ctk.CTkEntry(self.top_frame, placeholder_text="Nome do Perfil", textvariable=self.profile_name_var)
         self.profile_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
+        # Header Row Selection
+        self.header_frame = ctk.CTkFrame(self)
+        self.header_frame.grid(row=2, column=0, padx=20, pady=5, sticky="ew")
+        ctk.CTkLabel(self.header_frame, text="Linha do Cabeçalho:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.header_row_menu = ctk.CTkOptionMenu(self.header_frame, values=[str(i) for i in range(1, 11)], variable=self.header_row_var, command=self._on_header_row_change)
+        self.header_row_menu.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
         # Mapping Display Area
         self.mapping_frame = ctk.CTkScrollableFrame(self, label_text="Mapeamento de Colunas")
         self.mapping_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
@@ -48,10 +56,12 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
 
     def load_profile_for_editing(self, profile: SpreadsheetProfile):
         self.profile_name_var.set(profile.name)
+        self.header_row_var.set(str(profile.header_row))
         self.column_mappings = profile.columns
         self.file_path = None # Editing doesn't require a file selection
         self.profile_name_entry.configure(state="disabled") # Prevent name change during edit
         self.select_file_button.configure(state="disabled") # Prevent file change during edit
+        self.header_row_menu.configure(state="disabled")
         self.save_button.configure(text="Salvar Alterações", command=lambda: self._save_profile(is_editing=True))
         self._update_mapping_display()
 
@@ -59,32 +69,44 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
         self.file_path = None
         self.column_mappings = []
         self.profile_name_var.set("")
+        self.header_row_var.set("1")
         self.profile_name_entry.configure(state="normal")
         self.select_file_button.configure(state="normal")
+        self.header_row_menu.configure(state="normal")
         self.save_button.configure(text="Salvar Perfil", command=self._save_profile)
         self._update_mapping_display()
 
     def _select_file(self):
         file_path = select_file([("Arquivos Excel", "*.xlsx *.xls")])
         if file_path:
-            try:
-                headers = read_spreadsheet_headers(file_path)
-                self.file_path = file_path
-                self.column_mappings = [
-                    ColumnMapping(
-                        original_header=h,
-                        custom_name=h,
-                        column_type="texto",
-                        index=i
-                    ) for i, h in enumerate(headers)
-                ]
-                self.profile_name_var.set(os.path.basename(file_path).split('.')[0] + "_Profile")
-                self._update_mapping_display()
-            except Exception as e:
-                messagebox.showerror("Erro de Leitura", str(e))
-                self.file_path = None
-                self.column_mappings = []
-                self._update_mapping_display()
+            self.file_path = file_path
+            self._load_columns_from_file()
+
+    def _on_header_row_change(self, _):
+        if self.file_path:
+            self._load_columns_from_file()
+
+    def _load_columns_from_file(self):
+        if not self.file_path:
+            return
+        try:
+            header_row_idx = int(self.header_row_var.get()) - 1
+            headers = read_spreadsheet_headers(self.file_path, header_row_idx)
+            self.column_mappings = [
+                ColumnMapping(
+                    original_header=h,
+                    custom_name=h,
+                    column_type="texto",
+                    index=i
+                ) for i, h in enumerate(headers)
+            ]
+            if not self.profile_name_var.get():
+                self.profile_name_var.set(os.path.basename(self.file_path).split('.')[0] + "_Profile")
+            self._update_mapping_display()
+        except Exception as e:
+            messagebox.showerror("Erro de Leitura", str(e))
+            self.column_mappings = []
+            self._update_mapping_display()
 
     def _update_mapping_display(self):
         # Clear existing widgets
@@ -139,6 +161,7 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
 
         profile = SpreadsheetProfile(
             name=profile_name,
+            header_row=int(self.header_row_var.get()),
             columns=self.column_mappings
         )
         data_manager.save_profile(profile)

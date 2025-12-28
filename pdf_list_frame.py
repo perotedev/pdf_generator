@@ -16,6 +16,8 @@ class PdfListFrame(ctk.CTkFrame):
         self.all_pdfs: List[str] = []
         self.filtered_pdfs: List[str] = []
         self.search_var = ctk.StringVar()
+        self.year_var = ctk.StringVar(value="Todos")
+        self.month_var = ctk.StringVar(value="Todos")
 
         # --- Widgets ---
         ctk.CTkLabel(self, text="PDFs Gerados", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
@@ -25,9 +27,18 @@ class PdfListFrame(ctk.CTkFrame):
         self.search_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
         self.search_frame.grid_columnconfigure(1, weight=1)
         
+        ctk.CTkLabel(self.search_frame, text="Ano:").grid(row=0, column=2, padx=(10, 5), pady=10)
+        self.year_menu = ctk.CTkOptionMenu(self.search_frame, variable=self.year_var, values=["Todos"], command=lambda _: self._on_filter_change())
+        self.year_menu.grid(row=0, column=3, padx=(0, 10), pady=10, sticky="w")
+
+        ctk.CTkLabel(self.search_frame, text="Mês:").grid(row=0, column=4, padx=(10, 5), pady=10)
+        self.month_menu = ctk.CTkOptionMenu(self.search_frame, variable=self.month_var, values=["Todos"], command=lambda _: self._on_filter_change())
+        self.month_menu.grid(row=0, column=5, padx=(0, 10), pady=10, sticky="w")
+
         ctk.CTkLabel(self.search_frame, text="Buscar:").grid(row=0, column=0, padx=(10, 5), pady=10)
         self.search_entry = ctk.CTkEntry(self.search_frame, textvariable=self.search_var, placeholder_text="Digite o nome do arquivo...")
         self.search_entry.grid(row=0, column=1, padx=(0, 10), pady=10, sticky="ew")
+        self.search_frame.grid_columnconfigure(5, weight=1)
         self.search_var.trace_add("write", lambda name, index, mode: self._filter_pdfs())
 
         # PDF List Display
@@ -42,8 +53,27 @@ class PdfListFrame(ctk.CTkFrame):
         self._load_pdfs()
 
     def _load_pdfs(self):
-        self.all_pdfs = data_manager.get_generated_pdfs()
+        # Atualiza os menus de filtro
+        years = ["Todos"] + data_manager.get_available_years()
+        self.year_menu.configure(values=years)
+        
+        year = self.year_var.get()
+        if year != "Todos":
+            months = ["Todos"] + data_manager.get_available_months(year)
+            self.month_menu.configure(values=months)
+        else:
+            self.month_menu.configure(values=["Todos"])
+            self.month_var.set("Todos")
+
+        # Carrega os PDFs baseados nos filtros de diretório
+        y = None if self.year_var.get() == "Todos" else self.year_var.get()
+        m = None if self.month_var.get() == "Todos" else self.month_var.get()
+        
+        self.all_pdfs = data_manager.get_generated_pdfs(year=y, month=m)
         self._filter_pdfs()
+
+    def _on_filter_change(self):
+        self._load_pdfs()
 
     def _filter_pdfs(self):
         search_term = self.search_var.get().lower()
@@ -86,19 +116,25 @@ class PdfListFrame(ctk.CTkFrame):
             ctk.CTkLabel(self.list_frame, text=filename, wraplength=400).grid(row=row, column=0, padx=10, pady=5, sticky="w")
             ctk.CTkLabel(self.list_frame, text=creation_date).grid(row=row, column=1, padx=10, pady=5, sticky="w")
 
-            open_button = ctk.CTkButton(self.list_frame, text="Abrir no Explorer", width=120, command=lambda p=pdf_path: self._open_file(p))
+            open_button = ctk.CTkButton(self.list_frame, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
             open_button.grid(row=row, column=2, padx=10, pady=5, sticky="w")
 
     def _open_file(self, file_path: str):
         try:
-            open_file_in_explorer(file_path)
+            if os.path.exists(file_path):
+                os.startfile(file_path)
+            else:
+                messagebox.showerror("Erro", "Arquivo não encontrado.")
         except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível abrir o arquivo no Explorer: {e}")
+            messagebox.showerror("Erro", f"Não foi possível abrir o arquivo: {e}")
 
     def _open_pdf_directory(self):
         try:
-            pdf_dir = data_manager.get_generated_pdfs_dir()
-            open_file_in_explorer(pdf_dir)
+            pdf_dir = data_manager.pdf_base_dir
+            if os.path.exists(pdf_dir):
+                os.startfile(pdf_dir)
+            else:
+                messagebox.showerror("Erro", "Diretório não encontrado.")
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir o diretório: {e}")
 

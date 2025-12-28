@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 from typing import List, TypeVar, Type, Dict, Any
@@ -11,6 +12,14 @@ class DataManager:
         self.profiles_dir = os.path.join(base_dir, "profiles")
         self.license_file = os.path.join(base_dir, "license.json")
         os.makedirs(self.profiles_dir, exist_ok=True)
+        
+        # Local para salvar PDFs: Documentos/PDF_GENERATOR
+        docs_dir = os.path.join(os.path.expanduser("~"), "Documents")
+        if not os.path.exists(docs_dir):
+            docs_dir = os.path.join(os.path.expanduser("~"), "Documentos")
+        
+        self.pdf_base_dir = os.path.join(docs_dir, "PDF_GENERATOR")
+        os.makedirs(self.pdf_base_dir, exist_ok=True)
 
     def _get_file_path(self, profile_type: Type[T], name: str) -> str:
         # Normalize name to be safe for filenames
@@ -82,17 +91,45 @@ class DataManager:
         return {}
 
     def get_generated_pdfs_dir(self) -> str:
-        pdf_dir = os.path.join(self.base_dir, "Generated_PDFs")
+        # Estrutura PDF_GENERATOR/ANO/MES
+        now = datetime.now()
+        year = str(now.year)
+        month = now.strftime("%m")
+        pdf_dir = os.path.join(self.pdf_base_dir, year, month)
         os.makedirs(pdf_dir, exist_ok=True)
         return pdf_dir
 
-    def get_generated_pdfs(self) -> List[str]:
-        pdf_dir = self.get_generated_pdfs_dir()
-        # List all files in the directory and filter for .pdf
-        pdf_files = [os.path.join(pdf_dir, f) for f in os.listdir(pdf_dir) if f.endswith(".pdf")]
+    def get_generated_pdfs(self, year: str = None, month: str = None) -> List[str]:
+        pdf_files = []
+        
+        # Se ano e mês forem fornecidos, busca apenas naquela pasta
+        if year and month:
+            target_dir = os.path.join(self.pdf_base_dir, year, month)
+            if os.path.exists(target_dir):
+                pdf_files = [os.path.join(target_dir, f) for f in os.listdir(target_dir) if f.endswith(".pdf")]
+        else:
+            # Caso contrário, percorre toda a estrutura
+            for root, dirs, files in os.walk(self.pdf_base_dir):
+                for f in files:
+                    if f.endswith(".pdf"):
+                        pdf_files.append(os.path.join(root, f))
+        
         # Sort by modification time (newest first)
         pdf_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
         return pdf_files
+
+    def get_available_years(self) -> List[str]:
+        if not os.path.exists(self.pdf_base_dir):
+            return []
+        years = [d for d in os.listdir(self.pdf_base_dir) if os.path.isdir(os.path.join(self.pdf_base_dir, d)) and d.isdigit()]
+        return sorted(years, reverse=True)
+
+    def get_available_months(self, year: str) -> List[str]:
+        year_dir = os.path.join(self.pdf_base_dir, year)
+        if not os.path.exists(year_dir):
+            return []
+        months = [d for d in os.listdir(year_dir) if os.path.isdir(os.path.join(year_dir, d)) and d.isdigit()]
+        return sorted(months)
 
 # Singleton instance
 data_manager = DataManager()

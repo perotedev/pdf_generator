@@ -129,6 +129,7 @@ class App(ctk.CTk):
                 self.document_create_frame.clear_form()
             self.document_create_frame.grid(row=0, column=1, sticky="nsew")
         elif name == "batch":
+            self.batch_frame.load_profiles()
             self.batch_frame.grid(row=0, column=1, sticky="nsew")
         elif name == "list":
             self.list_frame.refresh_data() # Refresh data when navigating to the list
