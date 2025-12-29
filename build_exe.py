@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 
 def build():
     # Nome do executável
@@ -10,6 +11,14 @@ def build():
     
     # Ícone
     icon_path = os.path.join("assets", "pdf_generator.ico")
+    
+    # Remover pastas anteriores
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    for folder in ["build", "dist"]:
+        folder_path = os.path.join(script_dir, folder)
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+            print(f"Pasta '{folder}' removida.")
     
     # Comando base do PyInstaller
     cmd = [
