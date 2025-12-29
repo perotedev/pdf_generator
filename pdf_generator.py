@@ -119,7 +119,8 @@ def batch_generate_pdfs(
     spreadsheet_path: str,
     document_profile: DocumentProfile,
     spreadsheet_profile: SpreadsheetProfile,
-    status_callback: callable
+    status_callback: callable,
+    base_date: datetime
 ) -> int:
     """
     Reads a spreadsheet and generates multiple PDFs.
@@ -137,7 +138,7 @@ def batch_generate_pdfs(
         raise Exception(f"Erro ao ler a planilha: {e}")
 
     # 2. Prepare Output Directory
-    output_dir = data_manager.get_generated_pdfs_dir()
+    output_dir = data_manager.get_generated_pdfs_dir(base_date)
     
     generated_count = 0
     

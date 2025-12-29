@@ -152,11 +152,12 @@ class DataManager:
                         with zipf.open(member) as source, open(target_path, "wb") as target:
                             shutil.copyfileobj(source, target)
 
-    def get_generated_pdfs_dir(self) -> str:
+    def get_generated_pdfs_dir(self, base_date: datetime = None) -> str:
         # Estrutura PDF_GENERATOR/ANO/MES
-        now = datetime.now()
-        year = str(now.year)
-        month = now.strftime("%m")
+        if base_date is None:
+            base_date = datetime.now()
+        year = str(base_date.year)
+        month = base_date.strftime("%m")
         pdf_dir = os.path.join(self.pdf_base_dir, year, month)
         os.makedirs(pdf_dir, exist_ok=True)
         return pdf_dir
