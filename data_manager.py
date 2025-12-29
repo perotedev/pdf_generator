@@ -94,10 +94,11 @@ class DataManager:
         file_path = self._get_file_path(type(profile), profile.name).replace(" ", "_")
         try:
             os.remove(file_path)
+            os.remove(profile.pdf_path)
         except Exception as e:
             print(f"Error deleting profile {file_path}: {e}")
             pass
-        
+
     def save_license(self, license_info: Dict[str, Any]):
         with open(self.license_file, 'w', encoding='utf-8') as f:
             json.dump(license_info, f, indent=4)
