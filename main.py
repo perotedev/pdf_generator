@@ -94,32 +94,32 @@ class App(ctk.CTk):
             self.navigation_frame, text="Perfis de Planilha",
             command=lambda: self.select_frame_by_name("spreadsheet_list")
         )
-        self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=10)
+        self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=(10, 5))
 
         self.document_profile_button = ctk.CTkButton(
             self.navigation_frame, text="Perfis de Documento",
             command=lambda: self.select_frame_by_name("document_list")
         )
-        self.document_profile_button.grid(row=3, column=0, padx=20, pady=10)
+        self.document_profile_button.grid(row=3, column=0, padx=20, pady=5)
 
         self.batch_generate_button = ctk.CTkButton(
             self.navigation_frame, text="Gerar em Lote",
             command=lambda: self.select_frame_by_name("batch")
         )
-        self.batch_generate_button.grid(row=4, column=0, padx=20, pady=10)
+        self.batch_generate_button.grid(row=4, column=0, padx=20, pady=5)
 
         self.pdf_list_button = ctk.CTkButton(
             self.navigation_frame, text="PDFs Gerados",
             command=lambda: self.select_frame_by_name("list")
         )
-        self.pdf_list_button.grid(row=5, column=0, padx=20, pady=10)
+        self.pdf_list_button.grid(row=5, column=0, padx=20, pady=5)
 
         self.export_button = ctk.CTkButton(
             self.navigation_frame, text="Exportar Perfis (ZIP)",
             command=self.export_profiles,
             fg_color="gray30"
         )
-        self.export_button.grid(row=6, column=0, padx=20, pady=5)
+        self.export_button.grid(row=6, column=0, padx=20, pady=(20, 5))
 
         self.import_button = ctk.CTkButton(
             self.navigation_frame, text="Importar Perfis (ZIP)",
