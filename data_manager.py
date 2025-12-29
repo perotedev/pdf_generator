@@ -11,9 +11,11 @@ class DataManager:
     def __init__(self, base_dir: str = os.path.expanduser("~/.pdf_generator_app")):
         self.base_dir = base_dir
         self.profiles_dir = os.path.join(base_dir, "profiles")
+        self.templates_dir = os.path.join(base_dir, "templates")
         self.license_file = os.path.join(base_dir, "license.json")
         self.logo_file = os.path.join(base_dir, "company_logo.png")
         os.makedirs(self.profiles_dir, exist_ok=True)
+        os.makedirs(self.templates_dir, exist_ok=True)
         
         # Local para salvar PDFs: Documentos/PDF_GENERATOR
         docs_dir = os.path.join(os.path.expanduser("~"), "Documents")
@@ -54,6 +56,17 @@ class DataManager:
 
     def save_profile(self, profile: T):
         file_path = self._get_file_path(type(profile), profile.name).replace(" ", "_")
+        
+        if isinstance(profile, DocumentProfile):
+            # Copy PDF to local templates directory if it's not already there
+            if not profile.pdf_path.startswith(self.templates_dir):
+                import shutil
+                pdf_filename = os.path.basename(profile.pdf_path)
+                # Ensure unique filename to avoid collisions
+                local_pdf_path = os.path.join(self.templates_dir, f"{profile.name}_{pdf_filename}")
+                shutil.copy(profile.pdf_path, local_pdf_path)
+                profile.pdf_path = local_pdf_path
+
         profile_dict = self._to_dict(profile)
 
         if isinstance(profile, DocumentProfile):
@@ -104,6 +117,36 @@ class DataManager:
     def delete_logo(self):
         if os.path.exists(self.logo_file):
             os.remove(self.logo_file)
+
+    def export_profiles_to_zip(self, zip_path: str):
+        import zipfile
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # Add profiles
+            for filename in os.listdir(self.profiles_dir):
+                if filename.endswith(".json"):
+                    zipf.write(os.path.join(self.profiles_dir, filename), os.path.join("profiles", filename))
+            # Add templates
+            for filename in os.listdir(self.templates_dir):
+                zipf.write(os.path.join(self.templates_dir, filename), os.path.join("templates", filename))
+
+    def import_profiles_from_zip(self, zip_path: str):
+        import zipfile
+        import shutil
+        with zipfile.ZipFile(zip_path, 'r') as zipf:
+            for member in zipf.infolist():
+                if member.filename.startswith("profiles/") and member.filename.endswith(".json"):
+                    filename = os.path.basename(member.filename)
+                    target_path = os.path.join(self.profiles_dir, filename)
+                    if not os.path.exists(target_path):
+                        with zipf.open(member) as source, open(target_path, "wb") as target:
+                            shutil.copyfileobj(source, target)
+                elif member.filename.startswith("templates/"):
+                    filename = os.path.basename(member.filename)
+                    if not filename: continue
+                    target_path = os.path.join(self.templates_dir, filename)
+                    if not os.path.exists(target_path):
+                        with zipf.open(member) as source, open(target_path, "wb") as target:
+                            shutil.copyfileobj(source, target)
 
     def get_generated_pdfs_dir(self) -> str:
         # Estrutura PDF_GENERATOR/ANO/MES

@@ -42,8 +42,7 @@ class DocumentProfileListFrame(ctk.CTkFrame):
             return
 
         # Header Row
-        ctk.CTkLabel(self.list_frame, text="Nome do Perfil", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.list_frame, text="Template PDF", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.list_frame, text="Nome do Perfil", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="w")
         ctk.CTkLabel(self.list_frame, text="Mapeamentos", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=10, pady=5, sticky="w")
         ctk.CTkLabel(self.list_frame, text="Ações", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
@@ -51,8 +50,7 @@ class DocumentProfileListFrame(ctk.CTkFrame):
         for i, profile in enumerate(self.profiles):
             row = i + 1
             
-            ctk.CTkLabel(self.list_frame, text=profile.name).grid(row=row, column=0, padx=10, pady=5, sticky="w")
-            ctk.CTkLabel(self.list_frame, text=profile.pdf_path.split('/')[-1]).grid(row=row, column=1, padx=10, pady=5, sticky="w")
+            ctk.CTkLabel(self.list_frame, text=profile.name).grid(row=row, column=0, columnspan=2, padx=10, pady=5, sticky="w")
             ctk.CTkLabel(self.list_frame, text=f"{len(profile.field_mappings)}").grid(row=row, column=2, padx=10, pady=5, sticky="w")
 
             # Action Buttons Frame

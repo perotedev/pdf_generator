@@ -46,7 +46,7 @@ class App(ctk.CTk):
         self.navigation_frame = ctk.CTkFrame(self, corner_radius=0, width=180)
         self.navigation_frame.grid(row=0, column=0, sticky="ns")
         self.navigation_frame.grid_propagate(False) # Prevent frame from resizing to fit content
-        self.navigation_frame.grid_rowconfigure(6, weight=1)
+        self.navigation_frame.grid_rowconfigure(8, weight=1)
 
         # Logo
         self.logo_container = ctk.CTkFrame(self.navigation_frame, fg_color="transparent", width=140, height=170)
@@ -114,19 +114,33 @@ class App(ctk.CTk):
         )
         self.pdf_list_button.grid(row=5, column=0, padx=20, pady=10)
 
+        self.export_button = ctk.CTkButton(
+            self.navigation_frame, text="Exportar Perfis (ZIP)",
+            command=self.export_profiles,
+            fg_color="gray30"
+        )
+        self.export_button.grid(row=6, column=0, padx=20, pady=5)
+
+        self.import_button = ctk.CTkButton(
+            self.navigation_frame, text="Importar Perfis (ZIP)",
+            command=self.import_profiles,
+            fg_color="gray30"
+        )
+        self.import_button.grid(row=7, column=0, padx=20, pady=5)
+
         # --- License ---
         self.license_status_label = ctk.CTkLabel(self.navigation_frame, text="", font=ctk.CTkFont(size=14))
-        self.license_status_label.grid(row=7, column=0, padx=20, pady=0, sticky="s")
+        self.license_status_label.grid(row=9, column=0, padx=20, pady=0, sticky="s")
 
         self.license_expiration = ctk.CTkLabel(self.navigation_frame, text="", font=ctk.CTkFont(size=12))
-        self.license_expiration.grid(row=8, column=0, padx=20, pady=0, sticky="s")
+        self.license_expiration.grid(row=10, column=0, padx=20, pady=0, sticky="s")
 
         self.license_button = ctk.CTkButton(
             self.navigation_frame,
             text="Gerenciar Licença",
             command=self.show_license_dialog
         )
-        self.license_button.grid(row=9, column=0, padx=20, pady=20, sticky="s")
+        self.license_button.grid(row=11, column=0, padx=20, pady=20, sticky="s")
 
         # --- Frames ---
         self.spreadsheet_list_frame = SpreadsheetProfileListFrame(self, fg_color="transparent")
@@ -201,6 +215,8 @@ class App(ctk.CTk):
         self.document_profile_button.configure(state=state)
         self.batch_generate_button.configure(state=state)
         self.spreadsheet_profile_button.configure(state=state)
+        self.export_button.configure(state=state)
+        self.import_button.configure(state=state)
 
         if licensed:
             self.license_expiration.configure(text=f"Válido até {license_manager.get_expiration_date()}")
@@ -223,6 +239,25 @@ class App(ctk.CTk):
     def remove_logo(self):
         data_manager.delete_logo()
         self.load_logo()
+
+    def export_profiles(self):
+        path = filedialog.asksaveasfilename(defaultextension=".zip", filetypes=[("ZIP files", "*.zip")])
+        if path:
+            try:
+                data_manager.export_profiles_to_zip(path)
+                messagebox.showinfo("Sucesso", "Perfis exportados com sucesso!")
+            except Exception as e:
+                messagebox.showerror("Erro", f"Erro ao exportar perfis: {e}")
+
+    def import_profiles(self):
+        path = filedialog.askopenfilename(filetypes=[("ZIP files", "*.zip")])
+        if path:
+            try:
+                data_manager.import_profiles_from_zip(path)
+                messagebox.showinfo("Sucesso", "Perfis importados com sucesso! (Perfis existentes foram ignorados)")
+                self.refresh_data()
+            except Exception as e:
+                messagebox.showerror("Erro", f"Erro ao importar perfis: {e}")
 
     def load_logo(self):
         logo_path = data_manager.get_logo_path()
