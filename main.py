@@ -271,7 +271,7 @@ class App(ctk.CTk):
             # Get original dimensions
             width, height = img.size
             # Calculate new dimensions maintaining aspect ratio within 140x140
-            ratio = min(140 / width, 140 / height)
+            ratio = min(120 / width, 120 / height)
             new_size = (int(width * ratio), int(height * ratio))
             
             self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=new_size)
