@@ -14,7 +14,39 @@ from document_profile_frame import DocumentProfileFrame
 from document_profile_list_frame import DocumentProfileListFrame
 from batch_generation_frame import BatchGenerationFrame
 from pdf_list_frame import PdfListFrame
+import threading
 
+
+class ProgressDialog(ctk.CTkToplevel):
+    def __init__(self, master, title="Processando...", message="Por favor, aguarde..."):
+        super().__init__(master)
+        self.title(title)
+        self.geometry("400x100")
+        self.transient(master)  # Make it modal
+        self.grab_set()         # Modal behavior
+        self.resizable(False, False)
+        
+        # Center the dialog
+        master_x = master.winfo_x()
+        master_y = master.winfo_y()
+        master_width = master.winfo_width()
+        master_height = master.winfo_height()
+        
+        x = master_x + (master_width // 2) - 150
+        y = master_y + (master_height // 2) - 50
+        self.geometry(f"+{x}+{y}")
+
+        self.label = ctk.CTkLabel(self, text=message, font=ctk.CTkFont(size=14))
+        self.label.pack(pady=10, padx=20)
+
+        self.progressbar = ctk.CTkProgressBar(self, orientation="horizontal", mode="indeterminate")
+        self.progressbar.pack(pady=10, padx=20, fill="x")
+        self.progressbar.start()
+
+        self.protocol("WM_DELETE_WINDOW", self.disable_close) # Prevent closing with X button
+
+    def disable_close(self):
+        pass # Do nothing to prevent closing
 
 class App(ctk.CTk):
     def __init__(self):
@@ -94,32 +126,32 @@ class App(ctk.CTk):
             self.navigation_frame, text="Perfis de Planilha",
             command=lambda: self.select_frame_by_name("spreadsheet_list")
         )
-        self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=(10, 5))
+        self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=10)
 
         self.document_profile_button = ctk.CTkButton(
             self.navigation_frame, text="Perfis de Documento",
             command=lambda: self.select_frame_by_name("document_list")
         )
-        self.document_profile_button.grid(row=3, column=0, padx=20, pady=5)
+        self.document_profile_button.grid(row=3, column=0, padx=20, pady=10)
 
         self.batch_generate_button = ctk.CTkButton(
             self.navigation_frame, text="Gerar em Lote",
             command=lambda: self.select_frame_by_name("batch")
         )
-        self.batch_generate_button.grid(row=4, column=0, padx=20, pady=5)
+        self.batch_generate_button.grid(row=4, column=0, padx=20, pady=10)
 
         self.pdf_list_button = ctk.CTkButton(
             self.navigation_frame, text="PDFs Gerados",
             command=lambda: self.select_frame_by_name("list")
         )
-        self.pdf_list_button.grid(row=5, column=0, padx=20, pady=5)
+        self.pdf_list_button.grid(row=5, column=0, padx=20, pady=10)
 
         self.export_button = ctk.CTkButton(
             self.navigation_frame, text="Exportar Perfis (ZIP)",
             command=self.export_profiles,
             fg_color="gray30"
         )
-        self.export_button.grid(row=6, column=0, padx=20, pady=(20, 5))
+        self.export_button.grid(row=6, column=0, padx=20, pady=5)
 
         self.import_button = ctk.CTkButton(
             self.navigation_frame, text="Importar Perfis (ZIP)",
@@ -287,11 +319,35 @@ class App(ctk.CTk):
     def show_license_dialog(self):
         dialog = ctk.CTkInputDialog(
             text="Insira seu código de licença de 25 dígitos:",
-            title="Ativação de Licença"
+            title="Ativação de Licença",
         )
         if (code := dialog.get_input()):
-            messagebox.showinfo("Ativação de Licença", license_manager.activate_license(code))
-            self.update_license_status()
+            # 1. Show progress dialog
+            progress_dialog = ProgressDialog(
+                self,
+                title="Ativando Licença",
+                message="Conectando ao servidor e validando licença..."
+            )
+            
+            # 2. Run activation in a separate thread
+            activation_thread = threading.Thread(
+                target=self._run_activation,
+                args=(code, progress_dialog)
+            )
+            activation_thread.start()
+
+    def _run_activation(self, code, progress_dialog):
+        # This runs in a separate thread
+        result_message = license_manager.activate_license(code)
+        
+        # 3. Use after() to safely update the GUI from the main thread
+        self.after(0, lambda: self._handle_activation_result(result_message, progress_dialog))
+
+    def _handle_activation_result(self, result_message, progress_dialog):
+        # This runs in the main thread
+        progress_dialog.destroy()
+        messagebox.showinfo("Ativação de Licença", result_message)
+        self.update_license_status()
 
 
 if __name__ == "__main__":
