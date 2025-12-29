@@ -70,6 +70,18 @@ class SpreadsheetProfileListFrame(ctk.CTkFrame):
             messagebox.showerror("Erro", "Funcionalidade de edição não disponível.")
 
     def _delete_profile(self, profile: SpreadsheetProfile):
+        # Check if spreadsheet profile is linked to any document profile
+        from models import DocumentProfile
+        doc_profiles = data_manager.load_profiles(DocumentProfile)
+        linked_docs = [dp.name for dp in doc_profiles if dp.spreadsheet_profile_name == profile.name]
+        
+        if linked_docs:
+            messagebox.showerror("Erro de Exclusão", 
+                                 f"Não é possível excluir o perfil '{profile.name}' porque ele está vinculado aos seguintes perfis de documento:\n\n" + 
+                                 "\n".join(f"- {name}" for name in linked_docs) + 
+                                 "\n\nRemova o vínculo ou exclua os perfis de documento primeiro.")
+            return
+
         if messagebox.askyesno("Confirmação", f"Tem certeza que deseja excluir o perfil '{profile.name}'?"):
             try:
                 data_manager.delete_profile(profile)
