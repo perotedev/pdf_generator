@@ -61,7 +61,7 @@ class BatchGenerationFrame(ctk.CTkFrame):
 
         # Month Select
         try:
-            locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+            locale.setlocale(locale.LC_TIME, 'Portuguese_Brazil.1252')
         except locale.Error:
             try:
                 locale.setlocale(locale.LC_TIME, 'pt_BR')
