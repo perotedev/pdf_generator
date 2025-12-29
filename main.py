@@ -188,7 +188,7 @@ class App(ctk.CTk):
             if company_name:
                 self.navigation_frame_label.grid_forget()
                 self.company_label.configure(text=company_name)
-                self.company_label.grid(row=1, column=0, padx=20, pady=(0, 10))
+                self.company_label.grid(row=1, column=0, padx=20, pady=(5, 10))
             else:
                 self.company_label.grid_forget()
                 self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
@@ -200,9 +200,9 @@ class App(ctk.CTk):
             self.license_expiration.configure(text=f"--/--/--")
             self.company_label.grid_forget()
             self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
-            self.logo_container.destroy()
-            self.logo_button.destroy()
-            self.remove_logo_button.destroy()
+            self.logo_container.grid_forget()
+            self.logo_button.grid_forget()
+            self.remove_logo_button.grid_forget()
 
     def change_logo(self):
         file_path = filedialog.askopenfilename(
