@@ -43,13 +43,15 @@ class App(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # --- Navigation ---
-        self.navigation_frame = ctk.CTkFrame(self, corner_radius=0)
+        self.navigation_frame = ctk.CTkFrame(self, corner_radius=0, width=180)
         self.navigation_frame.grid(row=0, column=0, sticky="ns")
+        self.navigation_frame.grid_propagate(False) # Prevent frame from resizing to fit content
         self.navigation_frame.grid_rowconfigure(6, weight=1)
 
         # Logo
-        self.logo_container = ctk.CTkFrame(self.navigation_frame, fg_color="transparent")
+        self.logo_container = ctk.CTkFrame(self.navigation_frame, fg_color="transparent", width=140, height=170)
         self.logo_container.grid(row=0, column=0, padx=20, pady=(20, 0))
+        self.logo_container.grid_propagate(False) # Maintain fixed size for logo area
 
         self.logo_button = ctk.CTkButton(
             self.logo_container,
@@ -59,13 +61,13 @@ class App(ctk.CTk):
             command=self.change_logo,
             border_spacing=0,
         )
-        self.logo_button.grid(row=0, column=0)
+        self.logo_button.grid(row=0, column=0, sticky="n")
         self.original_logo_fg = self.logo_button.cget("fg_color")
 
         self.remove_logo_button = ctk.CTkButton(
             self.logo_container,
             text="Remover Logo",
-            width=100,
+            width=140,
             height=20,
             font=ctk.CTkFont(size=10),
             command=self.remove_logo,
@@ -221,7 +223,6 @@ class App(ctk.CTk):
     def remove_logo(self):
         data_manager.delete_logo()
         self.load_logo()
-        self.logo_button.configure(fg_color=self.original_logo_fg, width=140, height=140)
 
     def load_logo(self):
         logo_path = data_manager.get_logo_path()
@@ -232,14 +233,19 @@ class App(ctk.CTk):
 
         try:
             img = Image.open(logo_path)
-            img.thumbnail((123, 123))
-            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=(123, 123))
-            self.logo_button.configure(image=self.logo_img, text="", fg_color="transparent")
+            # Get original dimensions
+            width, height = img.size
+            # Calculate new dimensions maintaining aspect ratio within 140x140
+            ratio = min(140 / width, 140 / height)
+            new_size = (int(width * ratio), int(height * ratio))
             
-            self.remove_logo_button.grid(row=1, column=0, pady=(0, 5))
+            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=new_size)
+            self.logo_button.configure(image=self.logo_img, text="", fg_color="transparent", width=140, height=140)
+            
+            self.remove_logo_button.grid(row=1, column=0, pady=(0, 5), sticky="n")
         except Exception as e:
             print(f"Erro ao carregar logo: {e}")
-            self.logo_button.configure(image=None, text="Adicionar Logo")
+            self.logo_button.configure(image=None, text="Adicionar Logo", fg_color=self.original_logo_fg, width=140, height=140)
             self.remove_logo_button.grid_forget()
 
     # ---------- LICENSE DIALOG ----------
