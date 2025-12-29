@@ -36,4 +36,5 @@ class LicenseInfo:
     valid: bool
     expire_date: int  # Unix timestamp
     device_id: str
+    company: str = ""
 

@@ -12,6 +12,7 @@ class DataManager:
         self.base_dir = base_dir
         self.profiles_dir = os.path.join(base_dir, "profiles")
         self.license_file = os.path.join(base_dir, "license.json")
+        self.logo_file = os.path.join(base_dir, "company_logo.png")
         os.makedirs(self.profiles_dir, exist_ok=True)
         
         # Local para salvar PDFs: Documentos/PDF_GENERATOR
@@ -90,6 +91,19 @@ class DataManager:
             with open(self.license_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         return {}
+
+    def save_logo(self, image_path: str):
+        import shutil
+        shutil.copy(image_path, self.logo_file)
+
+    def get_logo_path(self) -> str:
+        if os.path.exists(self.logo_file):
+            return self.logo_file
+        return ""
+
+    def delete_logo(self):
+        if os.path.exists(self.logo_file):
+            os.remove(self.logo_file)
 
     def get_generated_pdfs_dir(self) -> str:
         # Estrutura PDF_GENERATOR/ANO/MES

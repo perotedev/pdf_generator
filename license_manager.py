@@ -101,7 +101,8 @@ class LicenseManager:
                     code=response_data["code"],
                     valid=response_data["valid"],
                     expire_date=response_data["expire_date"],
-                    device_id=response_data["device_id"]
+                    device_id=response_data["device_id"],
+                    company=response_data.get("company", "")
                 )
                 self._license_info = license_info
                 data_manager.save_license(license_info.__dict__)
