@@ -165,7 +165,7 @@ def batch_generate_pdfs(
         # Caso já exista um arquivo com o mesmo nome, adiciona um contador
         counter = 1
         while os.path.exists(output_path):
-            output_filename = f"{safe_filename}_{counter}.pdf"
+            output_filename = f"{safe_filename}_{document_profile.name}_{counter}.pdf"
             output_path = os.path.join(output_dir, output_filename)
             counter += 1
         
