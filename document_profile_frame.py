@@ -9,6 +9,15 @@ from utils import select_file, render_pdf_to_image, A4_WIDTH_MM, A4_HEIGHT_MM
 from PIL import Image, ImageDraw, ImageTk
 
 class DocumentProfileFrame(ctk.CTkFrame):
+    def _set_pdf_button_text(self, path: str):
+        name = os.path.basename(path)
+
+        max_len = 30  # ajuste o limite
+        if len(name) > max_len:
+            name = name[:max_len-3] + "..."
+
+        self.select_pdf_button.configure(text=f"PDF Selecionado: {name}")
+
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
@@ -36,11 +45,11 @@ class DocumentProfileFrame(ctk.CTkFrame):
         # Top Frame for selection and name
         self.top_frame = ctk.CTkFrame(self)
         self.top_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-        self.top_frame.grid_columnconfigure(0, weight=1)
-        self.top_frame.grid_columnconfigure(1, weight=1)
+        self.top_frame.grid_columnconfigure(0, weight=1, uniform="top")
+        self.top_frame.grid_columnconfigure(1, weight=1, uniform="top")
 
         self.select_pdf_button = ctk.CTkButton(self.top_frame, text="Selecionar Template PDF", command=self._select_pdf)
-        self.select_pdf_button.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.select_pdf_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
         self.profile_name_entry = ctk.CTkEntry(self.top_frame, placeholder_text="Nome do Perfil de Documento", textvariable=self.document_profile_name_var)
         self.profile_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
@@ -117,8 +126,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.title_column_var.set(profile.title_column)
         
         self.profile_name_entry.configure(state="disabled") # Prevent name change during edit
-        # self.select_pdf_button.configure(state="disabled", text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
-        self.select_pdf_button.configure(text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
+        self._set_pdf_button_text(self.pdf_path)
         self.save_button.configure(text="Salvar Alterações", command=lambda: self._save_profile(is_editing=True))
         self._render_pdf_image() # Render the PDF for visual editing
         self._on_profile_select(profile.spreadsheet_profile_name) # Load columns for menus
