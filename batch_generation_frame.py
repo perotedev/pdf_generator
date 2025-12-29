@@ -52,8 +52,11 @@ class BatchGenerationFrame(ctk.CTkFrame):
         self.generate_button.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
 
         # 4. Status
-        ctk.CTkLabel(self, text="Status:", font=ctk.CTkFont(weight="bold")).grid(row=4, column=0, padx=20, pady=(10, 0), sticky="w")
-        ctk.CTkLabel(self, textvariable=self.status_var, wraplength=800).grid(row=5, column=0, padx=20, pady=(0, 20), sticky="w")
+        self.status_frame = ctk.CTkFrame(self)
+        self.status_frame.grid(row=4, column=0, padx=20, pady=20, sticky="nsew")
+        self.status_frame.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(self.status_frame, text="Status:", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=20, pady=(10, 0), sticky="w")
+        ctk.CTkLabel(self.status_frame, textvariable=self.status_var, wraplength=800).grid(row=1, column=0, padx=20, pady=(0, 20), sticky="w")
 
         self._load_profiles()
 
