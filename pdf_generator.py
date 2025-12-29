@@ -63,33 +63,33 @@ def generate_pdf_with_template(
         column_name = mapping.column_name
         
         # Find the corresponding value in the data row
-        value = data_row.get(column_name, "")
+        value = str(data_row.get(column_name, ""))
         
         # Find the column type for formatting
         col_mapping = next((c for c in spreadsheet_profile.columns if c.custom_name == column_name), None)
         
         if col_mapping:
-            if col_mapping.column_type == "monetario":
-                try:
-                    value = f"R$ {float(value):.2f}".replace('.', ',')
-                except:
-                    pass
+            match col_mapping.column_type:
+                case "monetario":
+                    try:
+                        value = str(value).replace('$', '').replace('R$', '').strip()
+                        value = f"R$ {float(value):.2f}".replace('.', ',')
+                    except (ValueError, TypeError):
+                        pass
+                case "data":
+                    value = format_date_value(value, "data")
+                case "data e hora":
+                    value = format_date_value(value, "data e hora")
+                case "cpf":
+                    value = format_cpf(value)
+                case "cnpj":
+                    value = format_cnpj(value)
+                case "telefone":
+                    value = format_phone(value)
 
-            elif col_mapping.column_type == "data":
-                value = format_date_value(value, "data")
+        if not value or value.lower() == "nan":
+            value = ""
 
-            elif col_mapping.column_type == "data e hora":
-                value = format_date_value(value, "data e hora")
-
-            elif col_mapping.column_type == "cpf":
-                value = format_cpf(value)
-
-            elif col_mapping.column_type == "cnpj":
-                value = format_cnpj(value)
-
-            elif col_mapping.column_type == "telefone":
-                value = format_phone(value)
-        
         # Convert mm coordinates (from top-left) to ReportLab points (from bottom-left)
         # Assuming X is from left, Y is from top. A4 height is 297mm.
         x_point = mapping.x * MM_TO_POINTS

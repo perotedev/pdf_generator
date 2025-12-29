@@ -117,7 +117,8 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.title_column_var.set(profile.title_column)
         
         self.profile_name_entry.configure(state="disabled") # Prevent name change during edit
-        self.select_pdf_button.configure(state="disabled", text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
+        # self.select_pdf_button.configure(state="disabled", text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
+        self.select_pdf_button.configure(text=f"PDF Selecionado: {os.path.basename(self.pdf_path)}") # Prevent PDF change during edit
         self.save_button.configure(text="Salvar Alterações", command=lambda: self._save_profile(is_editing=True))
         self._render_pdf_image() # Render the PDF for visual editing
         self._on_profile_select(profile.spreadsheet_profile_name) # Load columns for menus
