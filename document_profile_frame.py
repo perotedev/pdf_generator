@@ -357,6 +357,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
     def _remove_mapping(self, mapping: PdfFieldMapping):
         self.field_mappings.remove(mapping)
         self._update_mapping_display()
+        self._on_canvas_resize()
 
     def _save_profile(self, is_editing=False):
         profile_name = self.document_profile_name_var.get().strip()
