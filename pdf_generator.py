@@ -12,7 +12,7 @@ from typing import Dict, Any
 
 from models import DocumentProfile, SpreadsheetProfile, ColumnType
 from data_manager import data_manager
-from utils import format_date_value
+from utils import format_date_value, format_cpf, format_cnpj, format_phone
 
 # PDF coordinates are typically measured from the bottom-left corner.
 # ReportLab uses points (1 point = 1/72 inch). 1mm = 2.83465 points.
@@ -73,11 +73,22 @@ def generate_pdf_with_template(
                 try:
                     value = f"R$ {float(value):.2f}".replace('.', ',')
                 except:
-                    pass # Mantém o valor original se a conversão falhar
+                    pass
+
             elif col_mapping.column_type == "data":
                 value = format_date_value(value, "data")
+
             elif col_mapping.column_type == "data e hora":
                 value = format_date_value(value, "data e hora")
+
+            elif col_mapping.column_type == "cpf":
+                value = format_cpf(value)
+
+            elif col_mapping.column_type == "cnpj":
+                value = format_cnpj(value)
+
+            elif col_mapping.column_type == "telefone":
+                value = format_phone(value)
         
         # Convert mm coordinates (from top-left) to ReportLab points (from bottom-left)
         # Assuming X is from left, Y is from top. A4 height is 297mm.

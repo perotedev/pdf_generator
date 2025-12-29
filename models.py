@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Literal
 
-ColumnType = Literal["texto", "numero", "monetario", "data", "data e hora"]
+ColumnType = Literal["texto", "numero", "monetario", "data", "data e hora", "cpf", "cnpj", "telefone", "email"]
 
 @dataclass
 class ColumnMapping:

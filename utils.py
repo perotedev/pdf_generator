@@ -5,6 +5,7 @@ from tkinter import filedialog
 from typing import Any, List, Optional, Tuple
 from pdf2image import convert_from_path
 from PIL import Image
+import re
 
 def select_file(file_types: List[Tuple[str, str]]) -> Optional[str]:
     """Opens a file dialog and returns the selected file path."""
@@ -126,3 +127,28 @@ def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
     except Exception as e:
         print(f"Erro ao renderizar PDF: {e}")
         return None
+
+def format_cpf(value: str):
+    digits = re.sub(r'\D', '', str(value))
+    if len(digits) == 11:
+        return f"{digits[0:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:11]}"
+    return value  # Mantém original se não bater
+
+def format_cnpj(value: str):
+    digits = re.sub(r'\D', '', str(value))
+    if len(digits) == 14:
+        return f"{digits[0:2]}.{digits[2:5]}.{digits[5:8]}/{digits[8:12]}-{digits[12:14]}"
+    return value
+
+def format_phone(value: str):
+    digits = re.sub(r'\D', '', str(value))
+    
+    # (99) 99999-9999 → 11 dígitos
+    if len(digits) == 11:
+        return f"({digits[0:2]}) {digits[2:7]}-{digits[7:]}"
+    
+    # (99) 9999-9999 → 10 dígitos
+    if len(digits) == 10:
+        return f"({digits[0:2]}) {digits[2:6]}-{digits[6:]}"
+    
+    return value  # não formata caso não bata
