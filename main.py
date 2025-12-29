@@ -57,9 +57,10 @@ class App(ctk.CTk):
             width=140,
             height=140,
             command=self.change_logo,
-            fg_color="transparent"
+            border_spacing=0,
         )
         self.logo_button.grid(row=0, column=0)
+        self.original_logo_fg = self.logo_button.cget("fg_color")
 
         self.remove_logo_button = ctk.CTkButton(
             self.logo_container,
@@ -220,19 +221,21 @@ class App(ctk.CTk):
     def remove_logo(self):
         data_manager.delete_logo()
         self.load_logo()
+        self.logo_button.configure(fg_color=self.original_logo_fg, width=140, height=140)
 
     def load_logo(self):
         logo_path = data_manager.get_logo_path()
         if not logo_path:
-            self.logo_button.configure(image=None, text="Adicionar Logo")
+            self.logo_button.configure(image=None, text="Adicionar Logo", fg_color=self.original_logo_fg, width=140, height=140)
             self.remove_logo_button.grid_forget()
             return
 
         try:
             img = Image.open(logo_path)
-            img.thumbnail((140, 140))
-            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=(140, 140))
-            self.logo_button.configure(image=self.logo_img, text="")
+            img.thumbnail((123, 123))
+            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=(123, 123))
+            self.logo_button.configure(image=self.logo_img, text="", fg_color="transparent")
+            
             self.remove_logo_button.grid(row=1, column=0, pady=(0, 5))
         except Exception as e:
             print(f"Erro ao carregar logo: {e}")
