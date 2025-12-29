@@ -169,6 +169,19 @@ class App(ctk.CTk):
             self.batch_generate_button.configure(state="normal")
             self.spreadsheet_profile_button.configure(state="normal")
             self.license_expiration.configure(text=f"Válido até {license_manager.get_expiration_date()}")
+            self.logo_container = ctk.CTkFrame(self.navigation_frame, fg_color="transparent")
+            self.logo_container.grid(row=0, column=0, padx=20, pady=(20, 0))
+            
+            self.logo_button = ctk.CTkButton(self.logo_container, text="Adicionar Logo", 
+                                            width=140, height=140, 
+                                            command=self.change_logo,
+                                            fg_color="gray70" if ctk.get_appearance_mode() == "Light" else "gray30")
+            self.logo_button.grid(row=0, column=0)
+            
+            self.remove_logo_button = ctk.CTkButton(self.logo_container, text="Remover Logo", 
+                                                width=100, height=20, font=ctk.CTkFont(size=10),
+                                                command=self.remove_logo, fg_color="transparent", text_color="gray")
+            self.load_logo()
             
             # Show company name if available
             company_name = license_manager.license_info.company if license_manager.license_info else ""
@@ -187,6 +200,9 @@ class App(ctk.CTk):
             self.license_expiration.configure(text=f"--/--/--")
             self.company_label.grid_forget()
             self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
+            self.logo_container.destroy()
+            self.logo_button.destroy()
+            self.remove_logo_button.destroy()
 
     def change_logo(self):
         file_path = filedialog.askopenfilename(
