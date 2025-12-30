@@ -6,7 +6,39 @@ from typing import List, Optional
 from models import DocumentProfile, SpreadsheetProfile, PdfFieldMapping
 from data_manager import data_manager
 from utils import select_file, render_pdf_to_image, A4_WIDTH_MM, A4_HEIGHT_MM
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageTk
+import threading
+
+class ProgressDialog(ctk.CTkToplevel):
+    def __init__(self, master, title="Processando...", message="Por favor, aguarde..."):
+        super().__init__(master)
+        self.title(title)
+        self.geometry("400x100")
+        self.transient(master)  # Make it modal
+        self.grab_set()         # Modal behavior
+        self.resizable(False, False)
+        
+        # Center the dialog
+        master_x = master.winfo_x()
+        master_y = master.winfo_y()
+        master_width = master.winfo_width()
+        master_height = master.winfo_height()
+        
+        x = master_x + (master_width // 2) - 150
+        y = master_y + (master_height // 2) - 50
+        self.geometry(f"+{x}+{y}")
+
+        self.label = ctk.CTkLabel(self, text=message, font=ctk.CTkFont(size=14))
+        self.label.pack(pady=10, padx=20)
+
+        self.progressbar = ctk.CTkProgressBar(self, orientation="horizontal", mode="indeterminate")
+        self.progressbar.pack(pady=10, padx=20, fill="x")
+        self.progressbar.start()
+
+        self.protocol("WM_DELETE_WINDOW", self.disable_close) # Prevent closing with X button
+
+    def disable_close(self):
+        pass # Do nothing to prevent closing
 
 class DocumentProfileFrame(ctk.CTkFrame):
     def _set_pdf_button_text(self, path: str):
@@ -186,22 +218,40 @@ class DocumentProfileFrame(ctk.CTkFrame):
             self.select_pdf_button.configure(text=f"PDF Selecionado: {os.path.basename(pdf_path)}")
             self._render_pdf_image()
 
-    def _render_pdf_image(self):
-        if not self.pdf_path:
-            return
-
-        # Renderiza o PDF para uma imagem PIL
-        self.pdf_image = render_pdf_to_image(self.pdf_path)
-        
+    def _handle_render_pdf_result(self, progress_dialog):
+        progress_dialog.destroy()
         if self.pdf_image:
             # Assume que o PDF tem o tamanho A4 (210x297mm)
             self.image_width_mm = A4_WIDTH_MM
             self.image_height_mm = A4_HEIGHT_MM
             self.pdf_canvas_label.grid_forget()
             self._on_canvas_resize()
+            return True
         else:
             messagebox.showerror("Erro de Renderização", "Não foi possível renderizar o PDF. Verifique o arquivo.")
             self.pdf_canvas_label.grid(row=0, column=0, sticky="nsew")
+            return False
+
+    def _render_pdf_to_image(self, pdf_path, progress_dialog):
+        self.pdf_image = render_pdf_to_image(pdf_path)
+        self.after(0, lambda: self._handle_render_pdf_result(progress_dialog))
+
+    def _render_pdf_image(self):
+        if not self.pdf_path:
+            return False
+
+        # Renderiza o PDF para uma imagem PIL
+        progress_dialog = ProgressDialog(
+            self,
+            title="Carregando PDF...",
+            message="Aguarde enquanto o PDF é carregado..."
+        )
+        
+        render_pdt_threading = threading.Thread(
+            target=self._render_pdf_to_image,
+            args=(self.pdf_path, progress_dialog)
+        )
+        render_pdt_threading.start()
 
     def _on_canvas_resize(self, event=None):
         if not self.pdf_image:
