@@ -48,6 +48,7 @@ class PdfListFrame(ctk.CTkFrame):
         # Button to open directory
         self.open_dir_button = ctk.CTkButton(self, text="Abrir Pasta de PDFs", command=self._open_pdf_directory)
         self.open_dir_button.grid(row=3, column=0, padx=20, pady=(10, 20), sticky="e")
+        self.list_frame.bind("<Configure>", lambda event: self.after(100, lambda: self.update_wrap(event)) if event.width else None)
 
         self._load_pdfs()
 
@@ -139,7 +140,6 @@ class PdfListFrame(ctk.CTkFrame):
             open_button.grid(row=row, column=1, padx=(10,0), pady=5, sticky="ew")
 
         self.list_frame.update_idletasks()
-        # self.list_frame.bind("<Configure>", lambda event: self.after(100, self.update_wrap(event)))
         self.list_frame._parent_canvas.configure(scrollregion=self.list_frame._parent_canvas.bbox("all"))
 
     def _open_file(self, file_path: str):
