@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pathlib import Path
 import customtkinter as ctk
 import tkinter as tk
@@ -5,48 +6,21 @@ from tkinter import messagebox, filedialog
 from typing import Optional
 from PIL import Image
 
-from data_manager import data_manager
-from license_manager import license_manager
-from spreadsheet_profile_frame import SpreadsheetProfileFrame
-from spreadsheet_profile_list_frame import SpreadsheetProfileListFrame
+from core.data_manager import data_manager
+from core.license_manager import license_manager
+from frames import (
+    SpreadsheetProfileFrame,
+    SpreadsheetProfileListFrame,
+    DocumentProfileFrame,
+    DocumentProfileListFrame,
+    BatchGenerationFrame,
+    PdfListFrame
+)
 from models import SpreadsheetProfile
-from document_profile_frame import DocumentProfileFrame
-from document_profile_list_frame import DocumentProfileListFrame
-from batch_generation_frame import BatchGenerationFrame
-from pdf_list_frame import PdfListFrame
+from dialogs import ProgressDialog
+from resources.strings import strings
 import threading
 
-
-class ProgressDialog(ctk.CTkToplevel):
-    def __init__(self, master, title="Processando...", message="Por favor, aguarde..."):
-        super().__init__(master)
-        self.title(title)
-        self.geometry("400x100")
-        self.transient(master)  # Make it modal
-        self.grab_set()         # Modal behavior
-        self.resizable(False, False)
-        
-        # Center the dialog
-        master_x = master.winfo_x()
-        master_y = master.winfo_y()
-        master_width = master.winfo_width()
-        master_height = master.winfo_height()
-        
-        x = master_x + (master_width // 2) - 150
-        y = master_y + (master_height // 2) - 50
-        self.geometry(f"+{x}+{y}")
-
-        self.label = ctk.CTkLabel(self, text=message, font=ctk.CTkFont(size=14))
-        self.label.pack(pady=10, padx=20)
-
-        self.progressbar = ctk.CTkProgressBar(self, orientation="horizontal", mode="indeterminate")
-        self.progressbar.pack(pady=10, padx=20, fill="x")
-        self.progressbar.start()
-
-        self.protocol("WM_DELETE_WINDOW", self.disable_close) # Prevent closing with X button
-
-    def disable_close(self):
-        pass # Do nothing to prevent closing
 
 class App(ctk.CTk):
     def __init__(self):
@@ -63,7 +37,7 @@ class App(ctk.CTk):
         except Exception as e:
             print(f"Não foi possível carregar ícone: {e}")
 
-        self.title("PDF Generator")
+        self.title(strings.APP_TITLE)
         self.geometry("1100x700")
         self.minsize(1100, 700)
 
@@ -88,7 +62,7 @@ class App(ctk.CTk):
 
         self.logo_button = ctk.CTkButton(
             self.logo_container,
-            text="Adicionar Logo",
+            text=strings.LOGO_ADD,
             width=140,
             height=140,
             command=self.change_logo,
@@ -99,7 +73,7 @@ class App(ctk.CTk):
 
         self.remove_logo_button = ctk.CTkButton(
             self.logo_container,
-            text="Remover Logo",
+            text=strings.LOGO_REMOVE,
             width=140,
             height=20,
             font=ctk.CTkFont(size=10),
@@ -111,7 +85,7 @@ class App(ctk.CTk):
         # Labels
         self.navigation_frame_label = ctk.CTkLabel(
             self.navigation_frame,
-            text="PDF Generator",
+            text=strings.APP_TITLE,
             font=ctk.CTkFont(size=20, weight="bold")
         )
         self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
@@ -124,38 +98,38 @@ class App(ctk.CTk):
 
         # Buttons
         self.spreadsheet_profile_button = ctk.CTkButton(
-            self.navigation_frame, text="Perfis de Planilha",
+            self.navigation_frame, text=strings.NAV_SPREADSHEET_PROFILES,
             command=lambda: self.select_frame_by_name("spreadsheet_list")
         )
         self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=(10, 5))
 
         self.document_profile_button = ctk.CTkButton(
-            self.navigation_frame, text="Perfis de Documento",
+            self.navigation_frame, text=strings.NAV_DOCUMENT_PROFILES,
             command=lambda: self.select_frame_by_name("document_list")
         )
         self.document_profile_button.grid(row=3, column=0, padx=20, pady=5)
 
         self.batch_generate_button = ctk.CTkButton(
-            self.navigation_frame, text="Gerar em Lote",
+            self.navigation_frame, text=strings.NAV_BATCH_GENERATE,
             command=lambda: self.select_frame_by_name("batch")
         )
         self.batch_generate_button.grid(row=4, column=0, padx=20, pady=5)
 
         self.pdf_list_button = ctk.CTkButton(
-            self.navigation_frame, text="PDFs Gerados",
+            self.navigation_frame, text=strings.NAV_GENERATED_PDFS,
             command=lambda: self.select_frame_by_name("list")
         )
         self.pdf_list_button.grid(row=5, column=0, padx=20, pady=5)
 
         self.export_button = ctk.CTkButton(
-            self.navigation_frame, text="Exportar Perfis (ZIP)",
+            self.navigation_frame, text=strings.NAV_EXPORT_PROFILES,
             command=self.export_profiles,
             fg_color="gray30",
         )
         self.export_button.grid(row=6, column=0, padx=20, pady=(10, 5))
 
         self.import_button = ctk.CTkButton(
-            self.navigation_frame, text="Importar Perfis (ZIP)",
+            self.navigation_frame, text=strings.NAV_IMPORT_PROFILES,
             command=self.import_profiles,
             fg_color="gray30"
         )
@@ -170,7 +144,7 @@ class App(ctk.CTk):
 
         self.license_button = ctk.CTkButton(
             self.navigation_frame,
-            text="Gerenciar Licença",
+            text=strings.NAV_MANAGE_LICENSE,
             command=self.show_license_dialog
         )
         self.license_button.grid(row=11, column=0, padx=20, pady=20, sticky="s")
@@ -253,12 +227,12 @@ class App(ctk.CTk):
             if not is_valid:
                 # If license became invalid, redirect to list screen (only accessible screen)
                 self.after(0, lambda: self.select_frame_by_name("list"))
-                self.after(0, lambda: messagebox.showwarning("Licença Inválida", "Sua licença foi invalidada ou expirou. Por favor, verifique sua assinatura."))
+                self.after(0, lambda: messagebox.showwarning(strings.LICENSE_INVALID_TITLE, strings.LICENSE_INVALID_MESSAGE))
 
     def update_license_status(self):
         licensed = license_manager.is_licensed
         self.license_status_label.configure(
-            text="Licença: Ativa" if licensed else "Licença: Inativa",
+            text=strings.LICENSE_ACTIVE if licensed else strings.LICENSE_INACTIVE,
             text_color="green" if licensed else "red"
         )
 
@@ -270,107 +244,83 @@ class App(ctk.CTk):
         self.import_button.configure(state=state)
 
         if licensed:
-            self.license_expiration.configure(text=f"Válido até {license_manager.get_expiration_date()}")
+            self.license_expiration.configure(text=strings.LICENSE_VALID_UNTIL.format(license_manager.get_expiration_date()))
             company = getattr(license_manager.license_info, "company", "")
             self.logo_button.configure(state="normal")
             self.remove_logo_button.configure(state="normal")
             if company:
-                self.navigation_frame_label.grid_forget()
                 self.company_label.configure(text=company)
-                self.company_label.grid(row=1, column=0, padx=20, pady=(5, 10))
+                self.company_label.grid(row=12, column=0, padx=20, pady=(0, 10), sticky="s")
+            else:
+                self.company_label.grid_forget()
         else:
+            self.license_expiration.configure(text="")
             self.company_label.grid_forget()
-            self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
-            self.license_expiration.configure(text="--/--/--")
             self.logo_button.configure(state="disabled")
             self.remove_logo_button.configure(state="disabled")
 
+    def show_license_dialog(self):
+        from core.license_manager import LicenseDialog
+        dialog = LicenseDialog(self)
+        self.wait_window(dialog)
+        self.update_license_status()
+
     # ---------- LOGO ----------
+    def load_logo(self):
+        logo_path = data_manager.get_logo_path()
+        if logo_path and Path(logo_path).exists():
+            try:
+                logo_image = Image.open(logo_path)
+                logo_image = logo_image.resize((140, 140), Image.Resampling.LANCZOS)
+                logo_photo = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(140, 140))
+                self.logo_button.configure(image=logo_photo, text="", fg_color=self.original_logo_fg)
+                self.logo_button._image = logo_photo
+                self.remove_logo_button.grid(row=1, column=0, pady=(5, 0))
+            except Exception as e:
+                print(f"Erro ao carregar logo: {e}")
+        else:
+            self.logo_button.configure(image=None, text=strings.LOGO_ADD, fg_color=self.original_logo_fg)
+            self.remove_logo_button.grid_forget()
+
     def change_logo(self):
-        if path := filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg *.gif *.bmp")]):
-            data_manager.save_logo(path)
+        file_path = filedialog.askopenfilename(
+            title="Selecione a Logo da Empresa",
+            filetypes=[("Imagens", "*.png *.jpg *.jpeg")]
+        )
+        if file_path:
+            data_manager.save_logo(file_path)
             self.load_logo()
 
     def remove_logo(self):
         data_manager.delete_logo()
         self.load_logo()
 
+    # ---------- EXPORT/IMPORT ----------
     def export_profiles(self):
-        path = filedialog.asksaveasfilename(defaultextension=".zip", filetypes=[("ZIP files", "*.zip")])
-        if path:
+        file_path = filedialog.asksaveasfilename(
+            title="Salvar Perfis",
+            defaultextension=".zip",
+            filetypes=[(strings.FILE_FILTERS_ZIP, "*.zip")]
+        )
+        if file_path:
             try:
-                data_manager.export_profiles_to_zip(path)
-                messagebox.showinfo("Sucesso", "Perfis exportados com sucesso!")
+                data_manager.export_profiles_to_zip(file_path)
+                messagebox.showinfo(strings.SUCCESS_TITLE, "Perfis exportados com sucesso!")
             except Exception as e:
-                messagebox.showerror("Erro", f"Erro ao exportar perfis: {e}")
+                messagebox.showerror(strings.ERROR_TITLE, f"Erro ao exportar perfis: {e}")
 
     def import_profiles(self):
-        path = filedialog.askopenfilename(filetypes=[("ZIP files", "*.zip")])
-        if path:
+        file_path = filedialog.askopenfilename(
+            title="Importar Perfis",
+            filetypes=[(strings.FILE_FILTERS_ZIP, "*.zip")]
+        )
+        if file_path:
             try:
-                data_manager.import_profiles_from_zip(path)
-                messagebox.showinfo("Sucesso", "Perfis importados com sucesso! (Perfis existentes foram ignorados)")
+                data_manager.import_profiles_from_zip(file_path)
+                messagebox.showinfo(strings.SUCCESS_TITLE, "Perfis importados com sucesso!")
                 self.refresh_data()
             except Exception as e:
-                messagebox.showerror("Erro", f"Erro ao importar perfis: {e}")
-
-    def load_logo(self):
-        logo_path = data_manager.get_logo_path()
-        if not logo_path:
-            self.logo_button.configure(image=None, text="Adicionar Logo", fg_color=self.original_logo_fg, width=140, height=140)
-            self.remove_logo_button.grid_forget()
-            return
-
-        try:
-            img = Image.open(logo_path)
-            # Get original dimensions
-            width, height = img.size
-            # Calculate new dimensions maintaining aspect ratio within 140x140
-            ratio = min(120 / width, 120 / height)
-            new_size = (int(width * ratio), int(height * ratio))
-            
-            self.logo_img = ctk.CTkImage(light_image=img, dark_image=img, size=new_size)
-            self.logo_button.configure(image=self.logo_img, text="", fg_color="transparent", width=140, height=140)
-            
-            self.remove_logo_button.grid(row=1, column=0, pady=(0, 5), sticky="n")
-        except Exception as e:
-            print(f"Erro ao carregar logo: {e}")
-            self.logo_button.configure(image=None, text="Adicionar Logo", fg_color=self.original_logo_fg, width=140, height=140)
-            self.remove_logo_button.grid_forget()
-
-    # ---------- LICENSE DIALOG ----------
-    def show_license_dialog(self):
-        dialog = ctk.CTkInputDialog(
-            text="Insira seu código de licença de 25 dígitos:",
-            title="Ativação de Licença",
-        )
-        if (code := dialog.get_input()):
-            # 1. Show progress dialog
-            progress_dialog = ProgressDialog(
-                self,
-                title="Ativando Licença",
-                message="Conectando ao servidor e validando licença..."
-            )
-            
-            # 2. Run activation in a separate thread
-            activation_thread = threading.Thread(
-                target=self._run_activation,
-                args=(code, progress_dialog)
-            )
-            activation_thread.start()
-
-    def _run_activation(self, code, progress_dialog):
-        # This runs in a separate thread
-        result_message = license_manager.activate_license(code)
-        
-        # 3. Use after() to safely update the GUI from the main thread
-        self.after(0, lambda: self._handle_activation_result(result_message, progress_dialog))
-
-    def _handle_activation_result(self, result_message, progress_dialog):
-        # This runs in the main thread
-        progress_dialog.destroy()
-        messagebox.showinfo("Ativação de Licença", result_message)
-        self.update_license_status()
+                messagebox.showerror(strings.ERROR_TITLE, f"Erro ao importar perfis: {e}")
 
 
 if __name__ == "__main__":
