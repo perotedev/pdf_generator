@@ -186,6 +186,9 @@ class App(ctk.CTk):
         self.load_logo()
         self.select_frame_by_name("list")
         self.update_license_status()
+        
+        # Start background license validation
+        threading.Thread(target=self.validate_license_startup, daemon=True).start()
 
     # ---------- REFRESH ----------
     def refresh_data(self):
@@ -237,6 +240,21 @@ class App(ctk.CTk):
             self.list_frame.grid(row=0, column=1, sticky="nsew")
 
     # ---------- LICENSE ----------
+    def validate_license_startup(self):
+        """
+        Checks internet and validates license via API in the background.
+        """
+        if license_manager.check_internet():
+            is_valid = license_manager.validate_license_online()
+            
+            # Update UI on main thread
+            self.after(0, self.update_license_status)
+            
+            if not is_valid:
+                # If license became invalid, redirect to list screen (only accessible screen)
+                self.after(0, lambda: self.select_frame_by_name("list"))
+                self.after(0, lambda: messagebox.showwarning("Licença Inválida", "Sua licença foi invalidada ou expirou. Por favor, verifique sua assinatura."))
+
     def update_license_status(self):
         licensed = license_manager.is_licensed
         self.license_status_label.configure(

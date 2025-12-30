@@ -22,6 +22,7 @@ def load_env():
 load_env()
 
 API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
+VALIDATE_API_URL = os.getenv("PDF_GENERATOR_VALIDATE_API_URL")
 API_KEY = os.getenv("PDF_GENERATOR_ACTIVATE_API_KEY")
 
 class LicenseManager:
@@ -123,5 +124,62 @@ class LicenseManager:
             return "Falha na ativação: Não foi possível conectar ao servidor."
         except Exception as e:
             return f"Erro inesperado durante a ativação: {e}"
+
+    def check_internet(self) -> bool:
+        try:
+            requests.get("https://www.google.com", timeout=5)
+            return True
+        except requests.exceptions.RequestException:
+            return False
+
+    def validate_license_online(self) -> bool:
+        """
+        Validates the current license with the online API.
+        Returns True if valid, False otherwise.
+        """
+        if not self._license_info or not self._license_info.code:
+            return False
+
+        if not self.check_internet():
+            return self.is_licensed # Fallback to local check if no internet
+
+        try:
+            payload = {
+                "code": self._license_info.code,
+                "device_id": self._get_device_id()
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {API_KEY}",
+            }
+            
+            response = requests.post(VALIDATE_API_URL, json=payload, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                is_valid = response_data.get("is_valid", False)
+                
+                if is_valid:
+                    # Update local info with latest from server
+                    self._license_info.valid = True
+                    if "expiration_date" in response_data:
+                        self._license_info.expire_date = response_data["expiration_date"]
+                    if "company" in response_data:
+                        self._license_info.company = response_data["company"]
+                    
+                    data_manager.save_license(self._license_info.__dict__)
+                    return True
+                else:
+                    self._license_info.valid = False
+                    data_manager.save_license(self._license_info.__dict__)
+                    return False
+            else:
+                # If server error, we might want to trust local state or not.
+                # For now, let's trust local state to avoid locking out users on server downtime.
+                return self.is_licensed
+
+        except Exception:
+            # On any error (timeout, etc.), fallback to local check
+            return self.is_licensed
 
 license_manager = LicenseManager()
