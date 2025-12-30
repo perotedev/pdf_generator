@@ -272,6 +272,8 @@ class App(ctk.CTk):
         if licensed:
             self.license_expiration.configure(text=f"Válido até {license_manager.get_expiration_date()}")
             company = getattr(license_manager.license_info, "company", "")
+            self.logo_button.configure(state="normal")
+            self.remove_logo_button.configure(state="normal")
             if company:
                 self.navigation_frame_label.grid_forget()
                 self.company_label.configure(text=company)
@@ -280,6 +282,8 @@ class App(ctk.CTk):
             self.company_label.grid_forget()
             self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
             self.license_expiration.configure(text="--/--/--")
+            self.logo_button.configure(state="disabled")
+            self.remove_logo_button.configure(state="disabled")
 
     # ---------- LOGO ----------
     def change_logo(self):
