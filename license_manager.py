@@ -33,21 +33,22 @@ class LicenseManager:
         self._load_license_from_disk()
 
     def _get_device_id(self) -> str:
-        """
-        Generates a unique device ID for Windows.
-        Using a combination of system info for a reasonably unique, non-MAC-address ID.
-        """
         try:
-            # For a real Windows app, using WMI to get a hardware ID is more robust.
-            # For this environment, we will use a simple UUID based on platform info.
-            # This is a fallback that will work in the sandbox.
             if platform.system() == "Windows":
-                # This command is more reliable on Windows
-                result = subprocess.check_output(["wmic", "csproduct", "get", "UUID"])
+                # Configuração para esconder a janela do CMD
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = 0 # SW_HIDE
+
+                # Adicionamos o startupinfo na chamada
+                result = subprocess.check_output(
+                    ["wmic", "csproduct", "get", "UUID"],
+                    startupinfo=startupinfo,
+                    creationflags=subprocess.CREATE_NO_WINDOW # Garante que nenhuma janela seja criada
+                )
                 device_id = result.decode().split("\n")[1].strip()
             else:
-                # Fallback for non-Windows (like the sandbox)
-                device_id = str(uuid.getnode()) # MAC address
+                device_id = str(uuid.getnode())
             return f"WIN-{device_id}"
         except Exception:
             return f"WIN-FALLBACK-{platform.node()}"
