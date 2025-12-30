@@ -87,6 +87,15 @@ class PdfListFrame(ctk.CTkFrame):
         
         self._update_list_display()
 
+    def update_wrap(self, event):
+        if event is None:
+            wrap = 550
+        else:
+            wrap = max(event.width - 520, 550)
+
+        for label in self.file_labels:
+            label.configure(wraplength=wrap)
+            
     def _update_list_display(self):
         # Clear existing widgets
         for widget in self.list_frame.winfo_children():
@@ -97,9 +106,10 @@ class PdfListFrame(ctk.CTkFrame):
             return
 
         # Header Row
-        ctk.CTkLabel(self.list_frame, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.list_frame, text="Data de Criação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.list_frame, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.list_frame, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, columnspan=3, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.list_frame, text="Data de Criação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.list_frame, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=10, pady=5, sticky="w")
+        self.file_labels: List[ctk.CTkLabel] = []
 
         # Data Rows
         for i, pdf_path in enumerate(self.filtered_pdfs):
@@ -113,11 +123,14 @@ class PdfListFrame(ctk.CTkFrame):
             except:
                 creation_date = "N/A"
 
-            ctk.CTkLabel(self.list_frame, text=filename, wraplength=400).grid(row=row, column=0, padx=10, pady=5, sticky="w")
-            ctk.CTkLabel(self.list_frame, text=creation_date).grid(row=row, column=1, padx=10, pady=5, sticky="w")
+            file_label = ctk.CTkLabel(self.list_frame, text=filename, justify="left")
+            file_label.grid(row=row, column=0, columnspan=3, padx=10, pady=5, sticky="w")
+            self.file_labels.append(file_label)
+            ctk.CTkLabel(self.list_frame, text=creation_date).grid(row=row, column=4, padx=10, pady=5, sticky="w")
+            self.list_frame.bind("<Configure>", lambda event: self.after(100, self.update_wrap(event)))
 
             open_button = ctk.CTkButton(self.list_frame, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
-            open_button.grid(row=row, column=2, padx=10, pady=5, sticky="w")
+            open_button.grid(row=row, column=5, padx=10, pady=5, sticky="w")
 
     def _open_file(self, file_path: str):
         try:
