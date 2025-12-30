@@ -104,7 +104,8 @@ class LicenseManager:
                     valid=response_data["valid"],
                     expire_date=response_data["expire_date"],
                     device_id=response_data["device_id"],
-                    company=response_data.get("company", "")
+                    company=response_data.get("company", ""),
+                    last_verification=int(datetime.now().timestamp())
                 )
                 self._license_info = license_info
                 data_manager.save_license(license_info.__dict__)
@@ -132,6 +133,11 @@ class LicenseManager:
             return True
         except requests.exceptions.RequestException:
             return False
+    
+    def _same_day_local(ts1, ts2):
+        d1 = datetime.fromtimestamp(ts1).date()
+        d2 = datetime.fromtimestamp(ts2).date()
+        return d1 == d2
 
     def validate_license_online(self) -> bool:
         """
@@ -140,6 +146,12 @@ class LicenseManager:
         """
         if not self._license_info or not self._license_info.code:
             return False
+        
+        d1 = datetime.fromtimestamp(self._license_info.last_verification).date()
+        d2 = datetime.now().date()
+
+        if d1 == d2:
+            return self.is_licensed  # Already verified today
 
         if not self.check_internet():
             return self.is_licensed # Fallback to local check if no internet
@@ -167,7 +179,7 @@ class LicenseManager:
                         self._license_info.expire_date = response_data["expiration_date"]
                     if "company" in response_data:
                         self._license_info.company = response_data["company"]
-                    
+                    self._license_info.last_verification = int(datetime.now().timestamp())
                     data_manager.save_license(self._license_info.__dict__)
                     return True
                 else:

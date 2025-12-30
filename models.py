@@ -38,4 +38,5 @@ class LicenseInfo:
     expire_date: int  # Unix timestamp
     device_id: str
     company: str = ""
+    last_verification: int # Unix timestamp
 
