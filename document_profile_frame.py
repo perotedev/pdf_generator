@@ -13,20 +13,23 @@ class ProgressDialog(ctk.CTkToplevel):
     def __init__(self, master, title="Processando...", message="Por favor, aguarde..."):
         super().__init__(master)
         self.title(title)
-        self.geometry("400x100")
-        self.transient(master)  # Make it modal
-        self.grab_set()         # Modal behavior
         self.resizable(False, False)
-        
-        # Center the dialog
-        master_x = master.winfo_x()
-        master_y = master.winfo_y()
-        master_width = master.winfo_width()
-        master_height = master.winfo_height()
-        
-        x = master_x + (master_width // 2) - 150
-        y = master_y + (master_height // 2) - 50
-        self.geometry(f"+{x}+{y}")
+
+        dialog_width = 400
+        dialog_height = 100
+        self.geometry(f"{dialog_width}x{dialog_height}")
+
+        # Centraliza na tela do computador
+        self.update_idletasks()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        x = (screen_width // 2) - (dialog_width // 2)
+        y = (screen_height // 2) - (dialog_height // 2)
+        self.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+
+        self.transient(master)
+        self.grab_set()
 
         self.label = ctk.CTkLabel(self, text=message, font=ctk.CTkFont(size=14))
         self.label.pack(pady=10, padx=20)
@@ -35,7 +38,7 @@ class ProgressDialog(ctk.CTkToplevel):
         self.progressbar.pack(pady=10, padx=20, fill="x")
         self.progressbar.start()
 
-        self.protocol("WM_DELETE_WINDOW", self.disable_close) # Prevent closing with X button
+        self.protocol("WM_DELETE_WINDOW", self.disable_close)
 
     def disable_close(self):
         pass # Do nothing to prevent closing
