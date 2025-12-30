@@ -39,48 +39,58 @@ def read_spreadsheet_headers(file_path: str, header_row_index: int = 0) -> List[
     except Exception as e:
         raise Exception(f"Erro ao ler a planilha: {e}")
 
-def format_date_value(value: Any, output_type: str) -> str:
+def format_date_value(value: Any, output_type: Optional[str] = None) -> str:
     """
-    Converte datas para formato brasileiro:
-    - data -> DD/MM/YYYY
-    - data e hora -> DD/MM/YYYY HH:MM
+    Converte datas para formato brasileiro com maior robustez.
     """
     if pd.isna(value) or str(value).strip() == "":
         return ""
     
     dt = None
 
+    # 1. Se já for objeto de data
     if isinstance(value, (pd.Timestamp, datetime)):
         dt = value
     else:
         date_str = str(value).strip()
+        
+        # 2. Tenta converter com dayfirst=True (Padrão BR)
+        # O pandas é inteligente para ISO (YYYY-MM-DD) mesmo com dayfirst=True
         dt = pd.to_datetime(date_str, dayfirst=True, errors="coerce")
 
+        # 3. Se falhou, tenta dateutil parser (mais flexível para formatos exóticos)
         if pd.isna(dt):
             try:
                 from dateutil import parser
                 dt = parser.parse(date_str, dayfirst=True)
             except:
+                # 4. Fallback manual para casos onde o separador ou formato é estranho
                 try:
-                    just_date = date_str.split(" ")[0]
-                    dt = pd.to_datetime(just_date, dayfirst=False)
+                    # Tenta extrair apenas a parte da data se houver lixo
+                    match = re.search(r'(\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4})', date_str)
+                    if match:
+                        dt = pd.to_datetime(match.group(1), dayfirst=True, errors="coerce")
                 except:
-                    return date_str
+                    pass
 
-    if pd.isna(dt):
-        return ""
+    # Se ainda assim não conseguiu converter, retorna o original ou vazio
+    if pd.isna(dt) or dt is None:
+        # Se for uma string que não parece data, talvez seja melhor retornar vazio ou a string
+        return str(value).strip()
 
     output_type = (output_type or "").strip().lower()
 
-    # ---- FORMATAÇÃO DEFINITIVA ----
-    if output_type in ("data", "date"):
-        return dt.strftime("%d/%m/%Y")
-
-    if output_type in ("data e hora", "data_hora", "datetime", "datahora"):
-        return dt.strftime("%d/%m/%Y às %H:%M")
-
-    # default: retorna data completa BR
-    return dt.strftime("%d/%m/%Y %H:%M")
+    # ---- FORMATAÇÃO ----
+    try:
+        if output_type in ("data", "date"):
+            return dt.strftime("%d/%m/%Y")
+        elif output_type in ("data e hora", "data_hora", "datetime", "datahora"):
+            return dt.strftime("%d/%m/%Y às %H:%M")
+        else:
+            # Default: DD/MM/YYYY HH:MM (sem o "às" para ser mais padrão)
+            return dt.strftime("%d/%m/%Y %H:%M")
+    except:
+        return str(value).strip()
 
 def open_file_in_explorer(file_path: str):
     """Opens the file or directory in the default file explorer (Windows specific)."""
