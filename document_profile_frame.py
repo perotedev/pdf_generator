@@ -43,7 +43,7 @@ class ProgressDialog(ctk.CTkToplevel):
         pass # Do nothing to prevent closing
 
 class DocumentProfileFrame(ctk.CTkFrame):
-    left_column_width = 300
+    left_column_width = 350
 
     def _set_text_wrap(self, text: str, max_len=30):
         if len(text) > max_len:
@@ -52,7 +52,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
 
     def _set_pdf_button_text(self, path: str):
         name = os.path.basename(path)
-        name = self._set_text_wrap(name)
+        name = self._set_text_wrap(name, 34)
         self.select_pdf_button.configure(text=f"PDF Selecionado: {name}")
 
     def __init__(self, master, **kwargs):
@@ -67,12 +67,13 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.image_width_mm: float = A4_WIDTH_MM
         self.image_height_mm: float = A4_HEIGHT_MM
         self.document_profile_name_var = ctk.StringVar()
-        self.spreadsheet_profile_name_var = ctk.StringVar()
         self.available_spreadsheet_profiles: List[SpreadsheetProfile] = []
         self.field_mappings: List[PdfFieldMapping] = []
         
-        self.selected_column_to_map_var = ctk.StringVar()
-        self.title_column_var = ctk.StringVar()
+        self.real_values: dict[str, str] = {"to_map": "", "to_title": "", "to_spreadsheed": ""}
+        self.label_values: dict[str, ctk.StringVar] = {"to_map": ctk.StringVar(), "to_title": ctk.StringVar(), "to_spreadsheed": ctk.StringVar()}
+        self.spreadsheet_profile_name_var = ctk.StringVar()
+        self.selected_column_to_map_var = ""
         self.x_coord_var = ctk.StringVar(value="0.0")
         self.y_coord_var = ctk.StringVar(value="0.0")
 
@@ -80,8 +81,10 @@ class DocumentProfileFrame(ctk.CTkFrame):
         ctk.CTkLabel(self, text="Gerenciamento de Perfis de Documento", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, columnspan=2, padx=20, pady=(20, 10), sticky="w")
 
         # Top Frame for selection and name
-        self.wrapper = ctk.CTkFrame(self, width=self.left_column_width, height=self.winfo_screenheight() - 100, fg_color="transparent")
-        self.wrapper.grid(row=1, rowspan=5, column=0, sticky="ew", padx=0, pady=0)
+        self.wrapper = ctk.CTkFrame(self, width=self.left_column_width, fg_color="transparent")
+        self.wrapper.grid(row=1, rowspan=5, column=0, sticky="nsew", padx=0, pady=0)
+        self.wrapper.grid_columnconfigure(0, weight=0)
+        self.wrapper.grid_rowconfigure(4, weight=1)
         self.wrapper.grid_propagate(False)
 
         self.top_frame = ctk.CTkFrame(self.wrapper)
@@ -100,15 +103,16 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.profile_select_frame.grid_columnconfigure(0, weight=1)
         
         self.spreadsheet_profile_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
-                                                         variable=self.spreadsheet_profile_name_var,
+                                                         variable=self.label_values["to_spreadsheed"],
                                                          values=["Selecione um Perfil de Planilha"],
                                                          command=self._on_profile_select)
         self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
 
         ctk.CTkLabel(self.profile_select_frame, text="Coluna para Título do PDF:").grid(row=2, column=0, padx=10, pady=0, sticky="w")
         self.title_column_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
-                                                   variable=self.title_column_var,
-                                                   values=["Selecione a Coluna"])
+                                                   variable=self.label_values["to_title"],
+                                                   values=["Selecione a Coluna"],
+                                                   command=self._on_select_to_title)
         self.title_column_menu.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
         
         # Mapping Input
@@ -116,15 +120,15 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.mapping_input_frame.grid(row=3, column=0, padx=20, pady=5, sticky="ew")
         self.mapping_input_frame.grid_columnconfigure(0, weight=1)
         self.mapping_input_frame.grid_columnconfigure(1, weight=0)
-        self.mapping_input_frame.grid_columnconfigure(2, weight=0)
         
         ctk.CTkLabel(self.mapping_input_frame, text="1. Selecione a Coluna:", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         
-        self.column_menu = ctk.CTkOptionMenu(self.mapping_input_frame, 
-                                             variable=self.selected_column_to_map_var,
+        self.column_menu = ctk.CTkOptionMenu(self.mapping_input_frame,
+                                             variable=self.label_values["to_map"],
                                              values=["Selecione a Coluna"],
-                                             width=200)
-        self.column_menu.grid(row=0, column=1, padx=(0, 10), pady=(10, 0), sticky="s")
+                                             width=200,
+                                             command=self._on_select_to_map)
+        self.column_menu.grid(row=0, column=1, padx=(0, 10), pady=(10, 0), sticky="ew")
         
         ctk.CTkLabel(self.mapping_input_frame, text="2. Clique no PDF ao lado para mapear a posição.", font=ctk.CTkFont(weight="bold")).grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="w")
         
@@ -165,15 +169,15 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.document_profile_name_var.set(profile.name)
         self.pdf_path = profile.pdf_path
         self.field_mappings = profile.field_mappings
-        self.spreadsheet_profile_name_var.set(profile.spreadsheet_profile_name)
-        self.title_column_var.set(profile.title_column)
+        self._on_select_to_spreadsheed(profile.spreadsheet_profile_name)
+        self._on_select_to_title(profile.title_column)
         
         self.profile_name_entry.configure(state="disabled") # Prevent name change during edit
         self._set_pdf_button_text(self.pdf_path)
         self.save_button.configure(text="Salvar Alterações", command=lambda: self._save_profile(is_editing=True))
         self._render_pdf_image() # Render the PDF for visual editing
         self._on_profile_select(profile.spreadsheet_profile_name) # Load columns for menus
-        self.title_column_var.set(profile.title_column) # Restore title column after menu load
+        self._on_select_to_title(profile.title_column) # Restore title column after menu load
         self._update_mapping_display()
 
     def clear_form(self):
@@ -195,31 +199,47 @@ class DocumentProfileFrame(ctk.CTkFrame):
         profile_names = [p.name for p in self.available_spreadsheet_profiles]
         if not profile_names:
             profile_names = ["Nenhum Perfil de Planilha Encontrado"]
-            self.spreadsheet_profile_name_var.set(profile_names[0])
+            self._on_select_to_spreadsheed(profile_names[0])
             self.spreadsheet_profile_menu.configure(state="disabled")
         else:
             self.spreadsheet_profile_menu.configure(values=profile_names, state="normal")
-            self.spreadsheet_profile_name_var.set(profile_names[0])
+            self._on_select_to_spreadsheed(profile_names[0])
             self._on_profile_select(profile_names[0])
 
     def _on_profile_select(self, profile_name: str):
+        self._on_select_to_spreadsheed(profile_name)
         selected_profile = next((p for p in self.available_spreadsheet_profiles if p.name == profile_name), None)
+        
         if selected_profile:
             column_names = [c.custom_name for c in selected_profile.columns]
             self.column_menu.configure(values=column_names)
-            self.selected_column_to_map_var.set(column_names[0] if column_names else "Selecione a Coluna")
             self.title_column_menu.configure(values=column_names)
-            self.title_column_var.set(column_names[0] if column_names else "Selecione a Coluna")
+            self._on_select_to_map(column_names[0] if column_names else "Selecione a Coluna")
+            self._on_select_to_title(column_names[0] if column_names else "Selecione a Coluna")
         else:
-            self.column_menu.configure(values=["Selecione a Coluna"])
-            self.selected_column_to_map_var.set("Selecione a Coluna")
             self.title_column_menu.configure(values=["Selecione a Coluna"])
-            self.title_column_var.set("Selecione a Coluna")
-        
+            self.column_menu.configure(values=["Selecione a Coluna"])
+            self._on_select_to_map("Selecione a Coluna")
+            self._on_select_to_title("Selecione a Coluna")
+
         # Do NOT clear existing mappings here, as it might be an edit operation.
         # The clear is handled by clear_form or load_profile_for_editing.
         # self.field_mappings = []
         self._update_mapping_display()
+
+    def _on_select(self, value: str, input_name: str, max_len=30):
+        self.real_values[input_name] = value
+        self.label_values[input_name].set(self._set_text_wrap(value, max_len))
+
+    def _on_select_to_map(self, value: str):
+        self._on_select(value, 'to_map', 23)
+        self.selected_column_to_map_var = value
+    
+    def _on_select_to_title(self, value: str):
+        self._on_select(value, 'to_title', 45)
+
+    def _on_select_to_spreadsheed(self, value: str):
+        self._on_select(value, 'to_spreadsheed', 45)
 
     def _select_pdf(self):
         pdf_path = select_file([("Arquivos PDF", "*.pdf")])
@@ -338,7 +358,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         if not self.pdf_image or not self.tk_image:
             return
 
-        column_name = self.selected_column_to_map_var.get()
+        column_name = self.selected_column_to_map_var
         if column_name == "Selecione a Coluna":
             messagebox.showerror("Erro", "Selecione uma coluna para mapear antes de clicar no PDF.")
             return
@@ -378,7 +398,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self._add_mapping()
 
     def _add_mapping(self):
-        column_name = self.selected_column_to_map_var.get()
+        column_name = self.selected_column_to_map_var
         
         if column_name == "Selecione a Coluna":
             # This should be caught by _on_pdf_click, but as a safeguard
@@ -438,7 +458,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
 
     def _save_profile(self, is_editing=False):
         profile_name = self.document_profile_name_var.get().strip()
-        spreadsheet_profile_name = self.spreadsheet_profile_name_var.get()
+        spreadsheet_profile_name = self.real_values["to_spreadsheed"]
 
         if not profile_name or not self.pdf_path or spreadsheet_profile_name == "Nenhum Perfil de Planilha Encontrado" or not self.field_mappings:
             messagebox.showerror("Erro", "Preencha todos os campos e adicione pelo menos um mapeamento.")
@@ -454,8 +474,8 @@ class DocumentProfileFrame(ctk.CTkFrame):
         profile = DocumentProfile(
             name=profile_name,
             pdf_path=self.pdf_path,
-            spreadsheet_profile_name=self.spreadsheet_profile_name_var.get(),
-            title_column=self.title_column_var.get(),
+            spreadsheet_profile_name=self.real_values["to_spreadsheed"],
+            title_column=self.real_values["to_title"],
             field_mappings=self.field_mappings
         )
         data_manager.save_profile(profile)
