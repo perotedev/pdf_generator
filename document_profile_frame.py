@@ -185,6 +185,11 @@ class DocumentProfileFrame(ctk.CTkFrame):
         
         self.pdf_canvas.bind("<Button-1>", self._on_pdf_click)
         self.pdf_canvas.bind("<Configure>", self._on_canvas_resize)
+        
+        # Suporte ao scroll com a roda do mouse
+        self.pdf_canvas.bind_all("<MouseWheel>", self._on_mousewheel) # Windows/macOS
+        self.pdf_canvas.bind_all("<Button-4>", self._on_mousewheel)   # Linux scroll up
+        self.pdf_canvas.bind_all("<Button-5>", self._on_mousewheel)   # Linux scroll down
 
         self.pdf_canvas_label = ctk.CTkLabel(self.pdf_canvas, text="Selecione um PDF para visualizar o template.")
         self.pdf_canvas_label.place(relx=0.5, rely=0.5, anchor="center")
@@ -206,6 +211,16 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.page_label.configure(text=f"Página: {self.current_page_index + 1} / {self.total_pages}")
         self.prev_page_button.configure(state="normal" if self.current_page_index > 0 else "disabled")
         self.next_page_button.configure(state="normal" if self.current_page_index < self.total_pages - 1 else "disabled")
+
+    def _on_mousewheel(self, event):
+        if not self.pdf_image:
+            return
+            
+        # Windows/macOS usam event.delta, Linux usa event.num
+        if event.num == 4 or event.delta > 0:
+            self.pdf_canvas.yview_scroll(-1, "units")
+        elif event.num == 5 or event.delta < 0:
+            self.pdf_canvas.yview_scroll(1, "units")
 
     def load_profile_for_editing(self, profile: DocumentProfile):
         self.document_profile_name_var.set(profile.name)
