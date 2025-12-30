@@ -129,10 +129,23 @@ A4_HEIGHT_MM = 297
 #         print(f"Erro ao renderizar PDF: {e}")
 #         return None
 
-def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
+def get_pdf_page_count(pdf_path: str) -> int:
     try:
         doc = fitz.open(pdf_path)
-        page = doc[0]
+        count = len(doc)
+        doc.close()
+        return count
+    except:
+        return 0
+
+def render_pdf_to_image(pdf_path: str, page_index: int = 0, dpi: int = 150) -> Optional[Image.Image]:
+    try:
+        doc = fitz.open(pdf_path)
+        if page_index >= len(doc):
+            doc.close()
+            return None
+            
+        page = doc[page_index]
         zoom = dpi / 72
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)

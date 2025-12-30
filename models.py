@@ -21,6 +21,7 @@ class PdfFieldMapping:
     column_name: str
     x: float  # in mm
     y: float  # in mm
+    page_index: int = 0  # 0-indexed page number
 
 @dataclass
 class DocumentProfile:
