@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import messagebox
 import os
 from typing import List, Optional
-
 from models import DocumentProfile, SpreadsheetProfile, PdfFieldMapping
 from data_manager import data_manager
 from utils import select_file, render_pdf_to_image, A4_WIDTH_MM, A4_HEIGHT_MM
@@ -44,13 +43,16 @@ class ProgressDialog(ctk.CTkToplevel):
         pass # Do nothing to prevent closing
 
 class DocumentProfileFrame(ctk.CTkFrame):
+    left_column_width = 300
+
+    def _set_text_wrap(self, text: str, max_len=30):
+        if len(text) > max_len:
+            text = text[:max_len-3] + "..."
+        return text
+
     def _set_pdf_button_text(self, path: str):
         name = os.path.basename(path)
-
-        max_len = 30  # ajuste o limite
-        if len(name) > max_len:
-            name = name[:max_len-3] + "..."
-
+        name = self._set_text_wrap(name)
         self.select_pdf_button.configure(text=f"PDF Selecionado: {name}")
 
     def __init__(self, master, **kwargs):
@@ -78,19 +80,22 @@ class DocumentProfileFrame(ctk.CTkFrame):
         ctk.CTkLabel(self, text="Gerenciamento de Perfis de Documento", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, columnspan=2, padx=20, pady=(20, 10), sticky="w")
 
         # Top Frame for selection and name
-        self.top_frame = ctk.CTkFrame(self)
+        self.wrapper = ctk.CTkFrame(self, width=self.left_column_width, height=self.winfo_screenheight() - 100, fg_color="transparent")
+        self.wrapper.grid(row=1, rowspan=5, column=0, sticky="ew", padx=0, pady=0)
+        self.wrapper.grid_propagate(False)
+
+        self.top_frame = ctk.CTkFrame(self.wrapper)
         self.top_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
         self.top_frame.grid_columnconfigure(0, weight=1, uniform="top")
-        self.top_frame.grid_columnconfigure(1, weight=1, uniform="top")
 
         self.select_pdf_button = ctk.CTkButton(self.top_frame, text="Selecionar Template PDF", command=self._select_pdf)
-        self.select_pdf_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.select_pdf_button.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="we")
 
         self.profile_name_entry = ctk.CTkEntry(self.top_frame, placeholder_text="Nome do Perfil de Documento", textvariable=self.document_profile_name_var)
-        self.profile_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        self.profile_name_entry.grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="we")
 
         # Spreadsheet Profile Selection
-        self.profile_select_frame = ctk.CTkFrame(self)
+        self.profile_select_frame = ctk.CTkFrame(self.wrapper)
         self.profile_select_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         self.profile_select_frame.grid_columnconfigure(0, weight=1)
         
@@ -98,43 +103,46 @@ class DocumentProfileFrame(ctk.CTkFrame):
                                                          variable=self.spreadsheet_profile_name_var,
                                                          values=["Selecione um Perfil de Planilha"],
                                                          command=self._on_profile_select)
-        self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
 
-        ctk.CTkLabel(self.profile_select_frame, text="Coluna para Título do PDF:").grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        ctk.CTkLabel(self.profile_select_frame, text="Coluna para Título do PDF:").grid(row=2, column=0, padx=10, pady=0, sticky="w")
         self.title_column_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
                                                    variable=self.title_column_var,
                                                    values=["Selecione a Coluna"])
         self.title_column_menu.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
         
         # Mapping Input
-        self.mapping_input_frame = ctk.CTkFrame(self)
-        self.mapping_input_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.mapping_input_frame = ctk.CTkFrame(self.wrapper)
+        self.mapping_input_frame.grid(row=3, column=0, padx=20, pady=5, sticky="ew")
         self.mapping_input_frame.grid_columnconfigure(0, weight=1)
+        self.mapping_input_frame.grid_columnconfigure(1, weight=0)
+        self.mapping_input_frame.grid_columnconfigure(2, weight=0)
         
-        ctk.CTkLabel(self.mapping_input_frame, text="1. Selecione a Coluna:", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text="1. Selecione a Coluna:", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         
         self.column_menu = ctk.CTkOptionMenu(self.mapping_input_frame, 
                                              variable=self.selected_column_to_map_var,
                                              values=["Selecione a Coluna"],
                                              width=200)
-        self.column_menu.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.column_menu.grid(row=0, column=1, padx=(0, 10), pady=(10, 0), sticky="s")
         
-        ctk.CTkLabel(self.mapping_input_frame, text="2. Clique no PDF ao lado para mapear a posição.", font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, padx=10, pady=(5, 10), sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text="2. Clique no PDF ao lado para mapear a posição.", font=ctk.CTkFont(weight="bold")).grid(row=1, column=0, columnspan=2, padx=10, pady=(5, 0), sticky="w")
         
         # Display X and Y for confirmation (optional, but good for debugging/confirmation)
-        ctk.CTkLabel(self.mapping_input_frame, text="X (mm):").grid(row=3, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_input_frame, textvariable=self.x_coord_var).grid(row=3, column=1, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_input_frame, text="Y (mm):").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_input_frame, textvariable=self.y_coord_var).grid(row=4, column=1, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text=f"X (mm): {self.x_coord_var.get()}").grid(row=2, column=0, padx=10, pady=(0,10), sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text=f"Y (mm): {self.y_coord_var.get()}").grid(row=2, column=1, padx=10, pady=(0,10), sticky="w")
 
         # Mapping Display Area
-        self.mapping_display_frame = ctk.CTkScrollableFrame(self, label_text="Mapeamentos Atuais")
+        self.mapping_display_frame = ctk.CTkScrollableFrame(self.wrapper, label_text="Mapeamentos Atuais")
         self.mapping_display_frame.grid(row=4, column=0, padx=20, pady=10, sticky="nsew")
         self.mapping_display_frame.grid_columnconfigure(0, weight=1)
 
         # Save Button
-        self.save_button = ctk.CTkButton(self, text="Salvar Perfil de Documento", command=self._save_profile)
-        self.save_button.grid(row=5, column=0, padx=20, pady=(10, 20), sticky="e")
+        self.save_button_frame = ctk.CTkFrame(self.wrapper, fg_color="transparent")
+        self.save_button_frame.grid(row=5, column=0, padx=0, pady=0, sticky="ew")
+        self.save_button_frame.grid_columnconfigure(0, weight=1)
+        self.save_button = ctk.CTkButton(self.save_button_frame, text="Salvar Perfil de Documento", command=self._save_profile)
+        self.save_button.grid(row=0, column=0, padx=20, pady=(10, 20), sticky="ew")
 
         # PDF Viewer Frame
         self.pdf_viewer_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -222,7 +230,15 @@ class DocumentProfileFrame(ctk.CTkFrame):
             self._render_pdf_image()
 
     def _handle_render_pdf_result(self, progress_dialog):
-        progress_dialog.destroy()
+        if progress_dialog.winfo_exists():
+            try:
+                progress_dialog.grab_release()
+            except:
+                pass
+
+            progress_dialog.withdraw()
+            progress_dialog.after(200, lambda: progress_dialog.destroy())
+        
         if self.pdf_image:
             # Assume que o PDF tem o tamanho A4 (210x297mm)
             self.image_width_mm = A4_WIDTH_MM
@@ -237,7 +253,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
 
     def _render_pdf_to_image(self, pdf_path, progress_dialog):
         self.pdf_image = render_pdf_to_image(pdf_path)
-        self.after(0, lambda: self._handle_render_pdf_result(progress_dialog))
+        self.after(50, lambda: self._handle_render_pdf_result(progress_dialog))
 
     def _render_pdf_image(self):
         if not self.pdf_path:
@@ -308,13 +324,13 @@ class DocumentProfileFrame(ctk.CTkFrame):
             # Desenha um círculo (marcador)
             radius = 5
             self.pdf_canvas.create_oval(
-                x_pixel - radius, y_pixel - radius,
-                x_pixel + radius, y_pixel + radius,
+                x_pixel - radius, y_pixel - radius - 4,
+                x_pixel + radius, y_pixel + radius - 4,
                 fill="red", outline="white", tags="mapping_marker"
             )
             # Desenha o nome da coluna
             self.pdf_canvas.create_text(
-                x_pixel + radius + 2, y_pixel,
+                x_pixel + radius + 2, y_pixel - 4,
                 anchor="w", text=mapping.column_name, fill="red", tags="mapping_text"
             )
 
@@ -399,16 +415,16 @@ class DocumentProfileFrame(ctk.CTkFrame):
             return
 
         # Header Row
-        ctk.CTkLabel(self.mapping_display_frame, text="Coluna", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_display_frame, text="X (mm)", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_display_frame, text="Y (mm)", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_display_frame, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.mapping_display_frame, text="Coluna", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(0,5), sticky="w")
+        ctk.CTkLabel(self.mapping_display_frame, text="X (mm)", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=10, pady=(0,5), sticky="w")
+        ctk.CTkLabel(self.mapping_display_frame, text="Y (mm)", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=10, pady=(0,5), sticky="w")
+        ctk.CTkLabel(self.mapping_display_frame, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=10, pady=(0,5), sticky="w")
 
         # Data Rows
         for i, mapping in enumerate(self.field_mappings):
             row = i + 1
-            
-            ctk.CTkLabel(self.mapping_display_frame, text=mapping.column_name).grid(row=row, column=0, padx=10, pady=5, sticky="w")
+            col_name = self._set_text_wrap(mapping.column_name, max_len=15)
+            ctk.CTkLabel(self.mapping_display_frame, text=col_name).grid(row=row, column=0, padx=10, pady=5, sticky="w")
             ctk.CTkLabel(self.mapping_display_frame, text=f"{mapping.x:.1f}").grid(row=row, column=1, padx=10, pady=5, sticky="w")
             ctk.CTkLabel(self.mapping_display_frame, text=f"{mapping.y:.1f}").grid(row=row, column=2, padx=10, pady=5, sticky="w")
 

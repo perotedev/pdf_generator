@@ -65,6 +65,7 @@ class App(ctk.CTk):
 
         self.title("PDF Generator")
         self.geometry("1100x700")
+        self.minsize(1100, 700)
 
         # --- Appearance ---
         ctk.set_appearance_mode("System")

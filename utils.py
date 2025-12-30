@@ -133,14 +133,15 @@ def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
     try:
         doc = fitz.open(pdf_path)
         page = doc[0]
-
         zoom = dpi / 72
         mat = fitz.Matrix(zoom, zoom)
-
         pix = page.get_pixmap(matrix=mat)
+        mode = "RGB"
+        
+        if pix.alpha:   # se tiver alpha, converte corretamente
+            mode = "RGBA"
 
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-
+        img = Image.frombytes(mode, (pix.width, pix.height), pix.samples)
         doc.close()
         return img
     except Exception as e:
