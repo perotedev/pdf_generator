@@ -42,9 +42,8 @@ class PdfListFrame(ctk.CTkFrame):
         self.search_var.trace_add("write", lambda name, index, mode: self._filter_pdfs())
 
         # PDF List Display
-        self.list_frame = ctk.CTkScrollableFrame(self, label_text="Arquivos PDF")
+        self.list_frame = ctk.CTkScrollableFrame(self, label_text="Arquivos PDF") # Defina uma altura inicial
         self.list_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
-        self.list_frame.grid_columnconfigure(0, weight=1)
 
         # Button to open directory
         self.open_dir_button = ctk.CTkButton(self, text="Abrir Pasta de PDFs", command=self._open_pdf_directory)
@@ -105,10 +104,19 @@ class PdfListFrame(ctk.CTkFrame):
             ctk.CTkLabel(self.list_frame, text="Nenhum PDF encontrado.").grid(row=0, column=0, padx=20, pady=20)
             return
 
+        self.list_frame.grid_columnconfigure(0, weight=1)
+        self.list_frame.grid_columnconfigure(4, weight=0)
+        self.list_frame.grid_rowconfigure(0, weight=1)
+        self.left_wraper = ctk.CTkFrame(self.list_frame)
+        self.left_wraper.grid(row=0, column=0, columnspan=3, padx=0, pady=0, sticky="nsew")
+        self.right_wraper = ctk.CTkFrame(self.list_frame, width=280)
+        self.right_wraper.grid(row=0, column=4, padx=0, pady=0, sticky="nsew")
+        self.right_wraper.grid_propagate(False)
+
         # Header Row
-        ctk.CTkLabel(self.list_frame, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, columnspan=3, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.list_frame, text="Data de Criação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=10, pady=5, sticky="w")
-        ctk.CTkLabel(self.list_frame, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.left_wraper, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="sw")
+        ctk.CTkLabel(self.right_wraper, text="Data de Criação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="ew")
+        ctk.CTkLabel(self.right_wraper, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=(10,0), pady=5, sticky="ew")
         self.file_labels: List[ctk.CTkLabel] = []
 
         # Data Rows
@@ -123,14 +131,16 @@ class PdfListFrame(ctk.CTkFrame):
             except:
                 creation_date = "N/A"
 
-            file_label = ctk.CTkLabel(self.list_frame, text=filename, justify="left")
-            file_label.grid(row=row, column=0, columnspan=3, padx=10, pady=5, sticky="w")
+            file_label = ctk.CTkLabel(self.left_wraper, text=filename, justify="left")
+            file_label.grid(row=row, column=0, padx=10, pady=5, sticky="sw")
             self.file_labels.append(file_label)
-            ctk.CTkLabel(self.list_frame, text=creation_date).grid(row=row, column=4, padx=10, pady=5, sticky="w")
-            self.list_frame.bind("<Configure>", lambda event: self.after(100, self.update_wrap(event)))
+            ctk.CTkLabel(self.right_wraper, text=creation_date).grid(row=row, column=0, padx=10, pady=5, sticky="ew")
+            open_button = ctk.CTkButton(self.right_wraper, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
+            open_button.grid(row=row, column=1, padx=(10,0), pady=5, sticky="ew")
 
-            open_button = ctk.CTkButton(self.list_frame, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
-            open_button.grid(row=row, column=5, padx=10, pady=5, sticky="w")
+        self.list_frame.update_idletasks()
+        # self.list_frame.bind("<Configure>", lambda event: self.after(100, self.update_wrap(event)))
+        self.list_frame._parent_canvas.configure(scrollregion=self.list_frame._parent_canvas.bbox("all"))
 
     def _open_file(self, file_path: str):
         try:
