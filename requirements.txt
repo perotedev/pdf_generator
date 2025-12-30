@@ -4,8 +4,8 @@ openpyxl
 reportlab
 requests
 wmi
-pdf2image
 Pillow
 python-dateutil
 pyinstaller
 python-dotenv
+PyMuPDF 

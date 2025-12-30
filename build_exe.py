@@ -29,14 +29,15 @@ def build():
         f"--name={app_name}",
         f"--icon={icon_path}",
         "--add-data=assets;assets",
-        "--add-data=poppler;poppler",
+        # removido poppler para usar outra lib
+        # "--add-data=poppler;poppler",
         "--add-data=.env;."
     ]
     
     # Adicionar o script principal
     cmd.append(main_script)
 
-    print("IMPORTANTE: Certifique-se de que a pasta 'poppler' (com Library/bin) estava presente no diretório raiz durante o build.")
+    # print("IMPORTANTE: Certifique-se de que a pasta 'poppler' (com Library/bin) estava presente no diretório raiz durante o build.")
     print(f"Iniciando build do {app_name}...")
     try:
         subprocess.run(cmd, check=True)

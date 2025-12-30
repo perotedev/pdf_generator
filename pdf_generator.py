@@ -5,10 +5,10 @@ from reportlab.lib.units import mm
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
-from pdf2image import convert_from_path
 import platform
 import getpass
 from typing import Dict, Any
+import fitz
 
 from models import DocumentProfile, SpreadsheetProfile, ColumnType
 from data_manager import data_manager
@@ -45,12 +45,31 @@ def generate_pdf_with_template(
     
     # If the user wants to use the PDF as a background, they would need to convert 
     # it to an image first and load it here:
-    poppler_path = data_manager.get_poppler_path()
-    pages = convert_from_path(document_profile.pdf_path, dpi=200, poppler_path=poppler_path)
+    
+    # método antigo com pdf2image e poppler
+    # poppler_path = data_manager.get_poppler_path()
+    # pages = convert_from_path(document_profile.pdf_path, dpi=200, poppler_path=poppler_path)
+    # temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
+    # os.makedirs(temp_dir, exist_ok=True)
+    # bg_image_path = os.path.join(temp_dir, "background_temp.png")
+    # pages[0].save(bg_image_path, "PNG")
+
+    # Renderiza a primeira página do PDF usando PyMuPDF (sem CMD)
+    dpi = 200
+    zoom = dpi / 72
+
+    doc = fitz.open(document_profile.pdf_path)
+    page = doc[0]
+    matrix = fitz.Matrix(zoom, zoom)
+    pix = page.get_pixmap(matrix=matrix)
+
     temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
     os.makedirs(temp_dir, exist_ok=True)
+
     bg_image_path = os.path.join(temp_dir, "background_temp.png")
-    pages[0].save(bg_image_path, "PNG")
+    pix.save(bg_image_path)
+
+    doc.close()
 
     try:
         c.drawImage(ImageReader(bg_image_path), 0, 0, width=width, height=height)

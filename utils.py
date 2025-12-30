@@ -3,9 +3,9 @@ import pandas as pd
 import os
 from tkinter import filedialog
 from typing import Any, List, Optional, Tuple
-from pdf2image import convert_from_path
 from PIL import Image
 import re
+import fitz 
 
 def select_file(file_types: List[Tuple[str, str]]) -> Optional[str]:
     """Opens a file dialog and returns the selected file path."""
@@ -114,16 +114,35 @@ def get_poppler__path() -> str:
 A4_WIDTH_MM = 210
 A4_HEIGHT_MM = 297
 
+# método antigo com pdf2image e poppler
+# def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
+#     """
+#     Converte a primeira página de um PDF para um objeto PIL Image.
+#     """
+#     try:
+#         # Converte a primeira página do PDF para uma imagem PIL
+#         images = convert_from_path(pdf_path, dpi=dpi, first_page=1, last_page=1, poppler_path=get_poppler__path())
+#         if images:
+#             return images[0]
+#         return None
+#     except Exception as e:
+#         print(f"Erro ao renderizar PDF: {e}")
+#         return None
+
 def render_pdf_to_image(pdf_path: str, dpi: int = 150) -> Optional[Image.Image]:
-    """
-    Converte a primeira página de um PDF para um objeto PIL Image.
-    """
     try:
-        # Converte a primeira página do PDF para uma imagem PIL
-        images = convert_from_path(pdf_path, dpi=dpi, first_page=1, last_page=1, poppler_path=get_poppler__path())
-        if images:
-            return images[0]
-        return None
+        doc = fitz.open(pdf_path)
+        page = doc[0]
+
+        zoom = dpi / 72
+        mat = fitz.Matrix(zoom, zoom)
+
+        pix = page.get_pixmap(matrix=mat)
+
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+        doc.close()
+        return img
     except Exception as e:
         print(f"Erro ao renderizar PDF: {e}")
         return None
