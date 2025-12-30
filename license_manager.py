@@ -58,6 +58,7 @@ class LicenseManager:
         if license_data:
             try:
                 self._license_info = LicenseInfo(**license_data)
+
                 # Basic local check for expiration
                 if self._license_info.valid and datetime.fromtimestamp(self._license_info.expire_date) < datetime.now():
                     self._license_info.valid = False
@@ -150,7 +151,7 @@ class LicenseManager:
         d1 = datetime.fromtimestamp(self._license_info.last_verification).date()
         d2 = datetime.now().date()
 
-        if d1 == d2:
+        if d1 == d2 and self.is_licensed:
             return self.is_licensed  # Already verified today
 
         if not self.check_internet():
