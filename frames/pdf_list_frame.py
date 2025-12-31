@@ -95,7 +95,7 @@ class PdfListFrame(ctk.CTkFrame):
             wrap = 550
         else:
             # Ajuste dinâmico do wrap baseado na largura do frame
-            wrap = max(event.width - 600, 300)
+            wrap = max(event.width - 670, 300)
 
         for label in self.file_labels:
             label.configure(wraplength=wrap)
