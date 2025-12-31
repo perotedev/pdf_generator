@@ -123,7 +123,21 @@ class Strings:
     PROGRESS_READING_SPREADSHEET = "Lendo planilha..."
     PROGRESS_PROCESSING_ROW = "Processando linha {} de {}..."
     PROGRESS_GENERATION_COMPLETE = "Geração concluída. {} PDFs criados."
-    
+
+    # Diálogo de estilo
+    STYLE_DIALOG_TITLE = "Configurar Estilo"
+    STYLE_DIALOG_FONT_LABEL = "Fonte:"
+    STYLE_DIALOG_SIZE_LABEL = "Tamanho:"
+    STYLE_DIALOG_COLOR_LABEL = "Cor:"
+    STYLE_DIALOG_BOLD = "Negrito"
+    STYLE_DIALOG_ITALIC = "Itálico"
+    STYLE_DIALOG_UNDERLINE = "Sublinhado"
+    STYLE_DIALOG_CHOOSE_COLOR = "Escolher Cor"
+    STYLE_DIALOG_TEXT_EXAMPLE = "Texto de Exemplo"
+    STYLE_DIALOG_SAVE = "Salvar"
+    STYLE_DIALOG_CANCEL = "Cancelar"
+
+
     # Outros
     NO_PROFILES_FOUND = "Nenhum Perfil de Planilha Encontrado"
     FILE_FILTERS_PDF = "Arquivos PDF"

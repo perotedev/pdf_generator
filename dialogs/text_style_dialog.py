@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
+import copy 
 import customtkinter as ctk
 from tkinter import colorchooser
-# Importe seus modelos e strings aqui
-# from models import TextStyle
-# from resources.strings import strings
+from resources.strings import strings
 
 class TextStyleDialog(ctk.CTkToplevel):
     """Diálogo para configurar estilo de texto corrigido"""
@@ -22,22 +21,24 @@ class TextStyleDialog(ctk.CTkToplevel):
         
         # Título e Geometria
         # Aumentei um pouco a altura para garantir que os botões não fiquem escondidos
-        self.title("Configurar Estilo") 
-        self.geometry("420x450") 
+        self.title(strings.STYLE_DIALOG_TITLE) 
+        self.geometry("420x365") 
         self.resizable(False, False)
         
         # Centraliza na tela
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - 210
         y = (self.winfo_screenheight() // 2) - 225
-        self.geometry(f"420x450+{x}+{y}")
+        self.geometry(f"420x365+{x}+{y}")
         
         self.transient(master)
         self.grab_set()
-        
+
+        self.initial_style = initial_style
+
         # Mock do estilo se não fornecido (para teste)
         if initial_style:
-            self.style = initial_style
+            self.style = copy.deepcopy(initial_style)
         else:
             # Fallback caso TextStyle não esteja definido no contexto
             class DefaultStyle:
@@ -63,7 +64,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         # Fonte
         font_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         font_frame.pack(fill="x", pady=5)
-        ctk.CTkLabel(font_frame, text="Fonte:", width=80, anchor="w").pack(side="left")
+        ctk.CTkLabel(font_frame, text=strings.STYLE_DIALOG_FONT_LABEL, width=80, anchor="w").pack(side="left")
         self.font_var = ctk.StringVar(value=self.style.font_family)
         font_menu = ctk.CTkOptionMenu(font_frame, variable=self.font_var, values=self.AVAILABLE_FONTS, width=200)
         font_menu.pack(side="left", padx=5)
@@ -71,7 +72,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         # Tamanho
         size_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         size_frame.pack(fill="x", pady=5)
-        ctk.CTkLabel(size_frame, text="Tamanho:", width=80, anchor="w").pack(side="left")
+        ctk.CTkLabel(size_frame, text=strings.STYLE_DIALOG_SIZE_LABEL, width=80, anchor="w").pack(side="left")
         self.size_var = ctk.StringVar(value=str(self.style.font_size))
         size_entry = ctk.CTkEntry(size_frame, textvariable=self.size_var, width=60)
         size_entry.pack(side="left", padx=5)
@@ -85,33 +86,38 @@ class TextStyleDialog(ctk.CTkToplevel):
         style_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         style_frame.pack(fill="x", pady=10)
         self.bold_var = ctk.BooleanVar(value=self.style.bold)
-        ctk.CTkCheckBox(style_frame, text="Negrito", variable=self.bold_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_BOLD, variable=self.bold_var).pack(side="left", padx=5)
         self.italic_var = ctk.BooleanVar(value=self.style.italic)
-        ctk.CTkCheckBox(style_frame, text="Itálico", variable=self.italic_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_ITALIC, variable=self.italic_var).pack(side="left", padx=5)
         
         # Cor
         color_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         color_frame.pack(fill="x", pady=5)
-        ctk.CTkLabel(color_frame, text="Cor:", width=80, anchor="w").pack(side="left")
+        ctk.CTkLabel(color_frame, text=strings.STYLE_DIALOG_COLOR_LABEL, width=80, anchor="w").pack(side="left")
         self.color_display = ctk.CTkFrame(color_frame, width=40, height=25, fg_color=self.style.color)
         self.color_display.pack(side="left", padx=5)
-        ctk.CTkButton(color_frame, text="Escolher Cor", width=100, command=self._choose_color).pack(side="left", padx=5)
+        ctk.CTkButton(color_frame, text=strings.STYLE_DIALOG_CHOOSE_COLOR, width=100, command=self._choose_color).pack(side="left", padx=5)
         
         # --- Preview ---
-        preview_group = ctk.CTkFrame(main_frame, fg_color=("gray85", "gray25"), corner_radius=10)
-        preview_group.pack(fill="both", expand=True, pady=15)
-        
-        self.preview_label = ctk.CTkLabel(preview_group, text="Texto de Exemplo", font=self._get_preview_font())
-        self.preview_label.pack(expand=True, pady=20)
+        preview_group = ctk.CTkFrame(main_frame, fg_color=("gray85", "gray25"), corner_radius=10, height=120)
+        preview_group.pack(fill="x", pady=15) 
+        preview_group.pack_propagate(False)  
+
+        self.preview_label = ctk.CTkLabel(
+            preview_group, 
+            text=strings.STYLE_DIALOG_TEXT_EXAMPLE, 
+            font=self._get_preview_font(), 
+            height=100
+        )
+        self.preview_label.pack(pady=10, fill="x") 
         
         # --- Botões de Ação (Confirmar/Cancelar) ---
-        # Colocamos em um frame separado no final para garantir visibilidade
         button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         button_frame.pack(fill="x", side="bottom", pady=(10, 0))
         
         save_button = ctk.CTkButton(
             button_frame, 
-            text="Confirmar", 
+            text=strings.STYLE_DIALOG_SAVE, 
             command=self._on_save,
             fg_color="#009454", # Cor verde para destacar o confirmar
             hover_color="#106a43",
@@ -121,7 +127,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         
         cancel_button = ctk.CTkButton(
             button_frame, 
-            text="Cancelar", 
+            text=strings.STYLE_DIALOG_CANCEL, 
             command=self._on_cancel,
             fg_color="transparent",
             border_width=2,
@@ -129,6 +135,7 @@ class TextStyleDialog(ctk.CTkToplevel):
             width=100
         )
         cancel_button.pack(side="right", padx=5)
+        self._update_preview()
         
         # Traces para o preview
         for var in [self.font_var, self.size_var, self.bold_var, self.italic_var]:
@@ -149,7 +156,7 @@ class TextStyleDialog(ctk.CTkToplevel):
     def _choose_color(self):
         color = colorchooser.askcolor(
                 initialcolor=self.style.color, 
-                title="Escolher Cor",
+                title=strings.STYLE_DIALOG_CHOOSE_COLOR,
                 parent=self.winfo_toplevel()
             )
         if color[1]:
@@ -159,7 +166,6 @@ class TextStyleDialog(ctk.CTkToplevel):
 
     def _on_save(self):
         # Aqui você reconstrói seu objeto TextStyle com os novos valores
-        # self.result_style = TextStyle(...) 
         if self.callback:
             self.callback(self.style)
         self.destroy()
