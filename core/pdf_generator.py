@@ -156,7 +156,7 @@ def generate_pdf_with_template(
                 
                 # Convert mm coordinates (from top-left) to ReportLab points (from bottom-left)
                 x_point = mapping.x * MM_TO_POINTS
-                y_point = (height - (mapping.y * MM_TO_POINTS))
+                y_point = (height - (mapping.y * MM_TO_POINTS)) - (style.font_size / MM_TO_POINTS)  # Ajusta pela altura da fonte
                 
                 # Desenha o texto
                 if style.underline:
