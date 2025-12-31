@@ -105,7 +105,7 @@ class App(ctk.CTk):
             text=strings.APP_TITLE,
             font=ctk.CTkFont(size=20, weight="bold")
         )
-        self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
+        self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=(0, 10))
 
         self.company_label = ctk.CTkLabel(
             self.navigation_frame,
@@ -280,11 +280,11 @@ class App(ctk.CTk):
             if company:
                 self.navigation_frame_label.grid_forget()
                 self.company_label.configure(text=company)
-                self.company_label.grid(row=1, column=0, padx=20, pady=10)
+                self.company_label.grid(row=1, column=0, padx=20, pady=(0, 10))
             else:
                 self.company_label.grid_forget()
                 self.navigation_frame_label.configure(text=strings.APP_TITLE)
-                self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
+                self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=(0,10))
         else:
             self.license_expiration.configure(text="")
             self.company_label.grid_forget()
