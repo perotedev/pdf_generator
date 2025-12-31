@@ -597,8 +597,6 @@ class DocumentProfileFrame(ctk.CTkFrame):
                     widget.bind("<Button-1>", go_action)
 
     def handle_event(self, p, column_name):
-        print(f"Going to page {p}")
-        print(f"Selecting column {column_name}")
         self._go_to_page(p)
         self._on_select_to_map(column_name)
         
