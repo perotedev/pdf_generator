@@ -17,7 +17,7 @@ class PdfListFrame(ctk.CTkFrame):
         self.all_pdfs: List[str] = []
         self.filtered_pdfs: List[str] = []
         self.current_page = 1
-        self.items_per_page = 30
+        self.items_per_page = 20
         
         self.search_var = ctk.StringVar()
         self.year_var = ctk.StringVar(value="Todos")
