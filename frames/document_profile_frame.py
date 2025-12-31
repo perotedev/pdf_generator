@@ -66,7 +66,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.wrapper = ctk.CTkFrame(self, width=self.left_column_width, fg_color="transparent")
         self.wrapper.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
         self.wrapper.grid_columnconfigure(0, weight=1)
-        self.wrapper.grid_rowconfigure(5, weight=1)
+        self.wrapper.grid_rowconfigure(4, weight=1)
         self.wrapper.grid_propagate(False)
 
         # Top Frame (PDF e Nome)
@@ -80,9 +80,27 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.profile_name_entry = ctk.CTkEntry(self.top_frame, placeholder_text=strings.DOC_PROFILE_NAME_PLACEHOLDER, textvariable=self.document_profile_name_var)
         self.profile_name_entry.grid(row=1, column=0, padx=10, pady=(5, 10), sticky="we")
 
+        # Spreadsheet Profile Selection
+        self.profile_select_frame = ctk.CTkFrame(self.wrapper)
+        self.profile_select_frame.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="ew")
+        self.profile_select_frame.grid_columnconfigure(0, weight=1)
+        
+        self.spreadsheet_profile_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
+                                                         variable=self.label_values["to_spreadsheed"],
+                                                         values=[strings.DOC_SELECT_SPREADSHEET_PROFILE],
+                                                         command=self._on_profile_select)
+        self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
+
+        ctk.CTkLabel(self.profile_select_frame, text=strings.DOC_TITLE_COLUMN).grid(row=2, column=0, padx=10, pady=0, sticky="w")
+        self.title_column_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
+                                                   variable=self.label_values["to_title"],
+                                                   values=[strings.DOC_SELECT_COLUMN],
+                                                   command=self._on_select_to_title)
+        self.title_column_menu.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
+
         # Page Format Frame
         self.format_frame = ctk.CTkFrame(self.wrapper)
-        self.format_frame.grid(row=2, column=0, padx=20, pady=0, sticky="ew")
+        self.format_frame.grid(row=3, column=0, padx=20, pady=(0, 10), sticky="ew")
         self.format_frame.grid_columnconfigure(0, weight=1)
         self.format_frame.grid_columnconfigure(1, weight=1)
         
@@ -105,48 +123,30 @@ class DocumentProfileFrame(ctk.CTkFrame):
             command=self._on_page_orientation_change
         )
         self.page_orientation_menu.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="ew")
+              
+        # Mapping Area Frame
+        self.mapping_area_frame = ctk.CTkFrame(self.wrapper)
+        self.mapping_area_frame.grid(row=4, column=0, padx=20, pady=0, sticky="nsew")
+        self.mapping_area_frame.grid_columnconfigure(0, weight=1)
+        self.mapping_area_frame.grid_rowconfigure(3, weight=1)
+        ctk.CTkLabel(self.mapping_area_frame, text=strings.DOC_STEP_1, font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(5, 0), sticky="w")
+        
+        self.column_menu = ctk.CTkOptionMenu(
+                self.mapping_area_frame,
+                variable=self.label_values["to_map"],
+                values=[strings.DOC_SELECT_COLUMN],
+                command=self._on_select_to_map
+            )
+        self.column_menu.grid(row=1, column=0, padx=10, pady=0, sticky="ew")
 
-        # Spreadsheet Profile Selection
-        self.profile_select_frame = ctk.CTkFrame(self.wrapper)
-        self.profile_select_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-        self.profile_select_frame.grid_columnconfigure(0, weight=1)
-        
-        self.spreadsheet_profile_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
-                                                         variable=self.label_values["to_spreadsheed"],
-                                                         values=[strings.DOC_SELECT_SPREADSHEET_PROFILE],
-                                                         command=self._on_profile_select)
-        self.spreadsheet_profile_menu.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
-
-        ctk.CTkLabel(self.profile_select_frame, text=strings.DOC_TITLE_COLUMN).grid(row=2, column=0, padx=10, pady=0, sticky="w")
-        self.title_column_menu = ctk.CTkOptionMenu(self.profile_select_frame, 
-                                                   variable=self.label_values["to_title"],
-                                                   values=[strings.DOC_SELECT_COLUMN],
-                                                   command=self._on_select_to_title)
-        self.title_column_menu.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="ew")
-        
-        # Mapping Input
-        self.mapping_input_frame = ctk.CTkFrame(self.wrapper)
-        self.mapping_input_frame.grid(row=4, column=0, padx=20, pady=0, sticky="ew")
-        self.mapping_input_frame.grid_columnconfigure(0, weight=1)
-        
-        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_1, font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(5, 0), sticky="w")
-        
-        self.column_menu = ctk.CTkOptionMenu(self.mapping_input_frame,
-                                             variable=self.label_values["to_map"],
-                                             values=[strings.DOC_SELECT_COLUMN],
-                                             command=self._on_select_to_map)
-        self.column_menu.grid(row=1, column=0, padx=10, pady=(0, 5), sticky="ew")
-        
-        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_2, font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, padx=10, pady=(0, 5), sticky="w")
-        
         # Mapping Display Area
-        self.mapping_display_frame = ctk.CTkScrollableFrame(self.wrapper, label_text=strings.DOC_CURRENT_MAPPINGS)
-        self.mapping_display_frame.grid(row=5, column=0, padx=20, pady=(10, 0), sticky="nsew")
+        self.mapping_display_frame = ctk.CTkScrollableFrame(self.mapping_area_frame, label_text=strings.DOC_CURRENT_MAPPINGS, fg_color="transparent")
+        self.mapping_display_frame.grid(row=3, column=0, padx=3, pady=(10, 0), sticky="nsew")
         self.mapping_display_frame.grid_columnconfigure(0, weight=1)
 
         # Save Button
         self.save_button_frame = ctk.CTkFrame(self.wrapper, fg_color="transparent")
-        self.save_button_frame.grid(row=6, column=0, padx=0, pady=0, sticky="ew")
+        self.save_button_frame.grid(row=5, column=0, padx=0, pady=0, sticky="ew")
         self.save_button_frame.grid_columnconfigure(0, weight=1)
         self.save_button = ctk.CTkButton(self.save_button_frame, text=strings.DOC_SAVE_PROFILE, command=self._save_profile)
         self.save_button.grid(row=0, column=0, padx=20, pady=(10, 20), sticky="ew")
@@ -534,10 +534,11 @@ class DocumentProfileFrame(ctk.CTkFrame):
             widget.destroy()
 
         if not self.field_mappings:
-            ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_NO_MAPPINGS).grid(row=0, column=0, padx=20, pady=0)
+            ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_NO_MAPPINGS).grid(row=3, column=0, padx=20, pady=0)
             return
         
         ICON_PAINT = "🎨" 
+        ICON_DELETE = "❌"
 
         for i, mapping in enumerate(sorted(self.field_mappings, key=lambda x: (getattr(x, 'page_index', 0), x.column_name))):
             row = i + 1
@@ -567,7 +568,14 @@ class DocumentProfileFrame(ctk.CTkFrame):
             )
             style_btn.pack(side="left", padx=2)
             
-            del_btn = ctk.CTkButton(btn_frame, text=strings.DOC_REMOVE_BUTTON, width=28, command=lambda m=mapping: self._remove_mapping(m), fg_color="red")
+            del_btn = ctk.CTkButton(
+                btn_frame, 
+                text=ICON_DELETE,
+                width=28, 
+                command=lambda m=mapping: self._remove_mapping(m), 
+                fg_color="red",
+                font=("Arial", 10)
+            )
             del_btn.pack(side="left", padx=(2,0))
 
             def on_enter(event, f=row_frame):
