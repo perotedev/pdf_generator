@@ -1,4 +1,4 @@
-from asyncio import subprocess
+import subprocess
 import os
 from tkinter import messagebox
 from core.data_manager import data_manager

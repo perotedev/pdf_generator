@@ -1,8 +1,7 @@
-import subprocess
 import customtkinter as ctk
-from tkinter import messagebox
 import os
 from datetime import datetime
+from resources.icons import icons
 from typing import List
 import math
 
@@ -223,7 +222,7 @@ class PdfListFrame(ctk.CTkFrame):
         ctk.CTkLabel(self.main_container, text="Ano", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=1, padx=10, pady=5)
         ctk.CTkLabel(self.main_container, text="Mês", font=ctk.CTkFont(weight="bold"), width=40).grid(row=0, column=2, padx=10, pady=5)
         ctk.CTkLabel(self.main_container, text="Data Criação", font=ctk.CTkFont(weight="bold"), width=120).grid(row=0, column=3, padx=10, pady=5)
-        ctk.CTkLabel(self.main_container, text="Ação", font=ctk.CTkFont(weight="bold"), width=140).grid(row=0, column=4, padx=10, pady=5, sticky="e")
+        ctk.CTkLabel(self.main_container, text="Ação", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=4, padx=10, pady=5, sticky="e")
         
         self.file_labels: List[ctk.CTkLabel] = []
 
@@ -252,10 +251,34 @@ class PdfListFrame(ctk.CTkFrame):
             
             ctk.CTkLabel(self.main_container, text=file_year, width=60).grid(row=row, column=1, padx=10, pady=5)
             ctk.CTkLabel(self.main_container, text=file_month, width=40).grid(row=row, column=2, padx=10, pady=5)
-            ctk.CTkLabel(self.main_container, text=creation_date, width=120).grid(row=row, column=3, padx=10, pady=5)
+            ctk.CTkLabel(self.main_container, text=creation_date, width=60).grid(row=row, column=3, padx=10, pady=5)
+
+            btn_frame = ctk.CTkFrame(self.main_container, fg_color="transparent", width=60)
+            btn_frame.grid(row=row, column=4, padx=10, pady=5, sticky="e")
             
-            open_button = ctk.CTkButton(self.main_container, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
-            open_button.grid(row=row, column=4, padx=10, pady=5, sticky="e")
+            open_file_btn = ctk.CTkButton(
+                btn_frame, 
+                text=icons.ICON_OPEN_FILE,
+                width=28,
+                command=lambda p=pdf_path: self._open_file(p),
+                fg_color="transparent",
+                border_width=2,
+                text_color=("black", "white"), 
+                font=("Arial", 14)
+            )
+            open_file_btn.pack(side="left", padx=2)
+            
+            open_folder_btn = ctk.CTkButton(
+                btn_frame, 
+                text=icons.ICON_OPEN_FOLDER,
+                width=28, 
+                command=lambda p=pdf_path: self._open_folder(p), 
+                fg_color="transparent",
+                border_width=2,
+                text_color=("black", "white"), 
+                font=("Arial", 14)
+            )
+            open_folder_btn.pack(side="left", padx=(5,0))
 
         self.list_frame.update_idletasks()
         self.list_frame._parent_canvas.configure(scrollregion=self.list_frame._parent_canvas.bbox("all"))

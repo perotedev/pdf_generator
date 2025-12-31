@@ -10,6 +10,7 @@ from PIL import Image, ImageTk
 import threading
 from dialogs import ProgressDialog, TextStyleDialog
 from resources.strings import strings
+from resources.icons import icons
 
 class DocumentProfileFrame(ctk.CTkFrame):
     left_column_width = 350
@@ -536,9 +537,6 @@ class DocumentProfileFrame(ctk.CTkFrame):
         if not self.field_mappings:
             ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_NO_MAPPINGS).grid(row=3, column=0, padx=20, pady=0)
             return
-        
-        ICON_PAINT = "🎨" 
-        ICON_DELETE = "❌"
 
         for i, mapping in enumerate(sorted(self.field_mappings, key=lambda x: (getattr(x, 'page_index', 0), x.column_name))):
             row = i + 1
@@ -560,7 +558,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
             
             style_btn = ctk.CTkButton(
                 btn_frame, 
-                text=ICON_PAINT,
+                text=icons.ICON_PAINT,
                 width=28,
                 command=lambda m=mapping: self._edit_mapping_style(m), 
                 fg_color="blue",
@@ -570,7 +568,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
             
             del_btn = ctk.CTkButton(
                 btn_frame, 
-                text=ICON_DELETE,
+                text=icons.ICON_DELETE,
                 width=28, 
                 command=lambda m=mapping: self._remove_mapping(m), 
                 fg_color="red",
