@@ -1,7 +1,6 @@
 import subprocess
 import os
 from tkinter import messagebox
-from core.data_manager import data_manager
 
 def open_file(file_path: str):
     try:
@@ -32,7 +31,6 @@ def open_file_directory(path: str):
             if os.name == 'nt':
                 os.startfile(path)
             elif os.name == 'posix':
-                import subprocess
                 subprocess.call(['xdg-open', path])
         else:
             messagebox.showerror("Erro", "Diretório não encontrado.")
