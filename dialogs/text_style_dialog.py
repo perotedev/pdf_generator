@@ -22,14 +22,14 @@ class TextStyleDialog(ctk.CTkToplevel):
         # Título e Geometria
         # Aumentei um pouco a altura para garantir que os botões não fiquem escondidos
         self.title(strings.STYLE_DIALOG_TITLE) 
-        self.geometry("420x365") 
+        self.geometry("350x365") 
         self.resizable(False, False)
         
         # Centraliza na tela
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - 210
         y = (self.winfo_screenheight() // 2) - 225
-        self.geometry(f"420x365+{x}+{y}")
+        self.geometry(f"350x365+{x}+{y}")
         
         self.transient(master)
         self.grab_set()
@@ -99,8 +99,8 @@ class TextStyleDialog(ctk.CTkToplevel):
         ctk.CTkButton(color_frame, text=strings.STYLE_DIALOG_CHOOSE_COLOR, width=100, command=self._choose_color).pack(side="left", padx=5)
         
         # --- Preview ---
-        preview_group = ctk.CTkFrame(main_frame, fg_color=("gray85", "gray25"), corner_radius=10, height=120)
-        preview_group.pack(fill="x", pady=15) 
+        preview_group = ctk.CTkFrame(main_frame, fg_color=("gray85", "gray25"), corner_radius=10, height=115)
+        preview_group.pack(fill="x", pady=(15, 5)) 
         preview_group.pack_propagate(False)  
 
         self.preview_label = ctk.CTkLabel(
@@ -115,16 +115,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         button_frame.pack(fill="x", side="bottom", pady=(10, 0))
         
-        save_button = ctk.CTkButton(
-            button_frame, 
-            text=strings.STYLE_DIALOG_SAVE, 
-            command=self._on_save,
-            fg_color="#009454", # Cor verde para destacar o confirmar
-            hover_color="#106a43",
-            width=140
-        )
-        save_button.pack(side="right", padx=5)
-        
+        # Para que os botões preencham toda a largura, usamos side="left" com fill="x" e expand=True
         cancel_button = ctk.CTkButton(
             button_frame, 
             text=strings.STYLE_DIALOG_CANCEL, 
@@ -132,9 +123,18 @@ class TextStyleDialog(ctk.CTkToplevel):
             fg_color="transparent",
             border_width=2,
             text_color=("black", "white"),
-            width=100
+            width=0 # Removido largura fixa para permitir expansão
         )
-        cancel_button.pack(side="right", padx=5)
+        cancel_button.pack(side="left", padx=(0, 5), pady=(0,5), fill="x", expand=True)
+
+        save_button = ctk.CTkButton(
+            button_frame, 
+            text=strings.STYLE_DIALOG_SAVE, 
+            command=self._on_save,
+            width=0 # Removido largura fixa para permitir expansão
+        )
+        save_button.pack(side="left", padx=(5, 0), pady=(0,5),fill="x", expand=True)
+        
         self._update_preview()
         
         # Traces para o preview
