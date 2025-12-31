@@ -22,14 +22,14 @@ class TextStyleDialog(ctk.CTkToplevel):
         # Título e Geometria
         # Aumentei um pouco a altura para garantir que os botões não fiquem escondidos
         self.title(strings.STYLE_DIALOG_TITLE) 
-        self.geometry("350x380") # Aumentado de 365 para 380 para acomodar o novo checkbox
+        self.geometry("350x365") # Aumentado de 365 para 380 para acomodar o novo checkbox
         self.resizable(False, False)
         
         # Centraliza na tela
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - 210
         y = (self.winfo_screenheight() // 2) - 225
-        self.geometry(f"350x380+{x}+{y}")
+        self.geometry(f"350x365+{x}+{y}")
         
         self.transient(master)
         self.grab_set()
@@ -84,16 +84,16 @@ class TextStyleDialog(ctk.CTkToplevel):
         
         # Estilos (Negrito, Itálico, Sublinhado)
         style_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        style_frame.pack(fill="x", pady=10)
+        style_frame.pack(fill="x", pady=10, padx=0)
         
         self.bold_var = ctk.BooleanVar(value=self.style.bold)
-        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_BOLD, variable=self.bold_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_BOLD, variable=self.bold_var).pack(side="left", padx=0)
         
         self.italic_var = ctk.BooleanVar(value=self.style.italic)
         ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_ITALIC, variable=self.italic_var).pack(side="left", padx=5)
         
         self.underline_var = ctk.BooleanVar(value=self.style.underline)
-        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_UNDERLINE, variable=self.underline_var).pack(side="left", padx=5)
+        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_UNDERLINE, variable=self.underline_var).pack(side="left", padx=0)
         
         # Cor
         color_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
@@ -118,7 +118,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         
         # --- Botões de Ação (Confirmar/Cancelar) ---
         button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        button_frame.pack(fill="x", side="bottom", pady=(10, 0))
+        button_frame.pack(fill="x", side="bottom", pady=0)
         
         # Para que os botões preencham toda a largura, usamos side="left" com fill="x" e expand=True
         cancel_button = ctk.CTkButton(
