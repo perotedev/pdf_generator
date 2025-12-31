@@ -3,10 +3,16 @@ import sys
 import os
 from pathlib import Path
 
-# Adiciona o diretório atual ao sys.path para garantir que os módulos locais sejam encontrados
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
+# Ajuste para PyInstaller --onefile
+if getattr(sys, 'frozen', False):
+    # Se estiver rodando como executável, o diretório base é o sys._MEIPASS
+    base_path = sys._MEIPASS
+else:
+    # Se estiver rodando como script, o diretório base é o diretório do arquivo
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
 
 import customtkinter as ctk
 import tkinter as tk
@@ -271,9 +277,48 @@ class App(ctk.CTk):
             self.remove_logo_button.configure(state="disabled")
 
     def show_license_dialog(self):
-        from core.license_manager import LicenseDialog
-        dialog = LicenseDialog(self)
-        self.wait_window(dialog)
+        dialog = ctk.CTkInputDialog(
+            text="Insira seu código de licença de 25 dígitos:",
+            title="Ativação de Licença",
+        )
+        # O CTkInputDialog retorna o valor quando o botão OK é clicado
+        code = dialog.get_input()
+        if code:
+            # 1. Show progress dialog
+            progress_dialog = ProgressDialog(
+                self,
+                title="Ativando Licença",
+                message="Conectando ao servidor e validando licença..."
+            )
+            
+            # 2. Run activation in a separate thread
+            activation_thread = threading.Thread(
+                target=self._run_activation,
+                args=(code, progress_dialog)
+            )
+            activation_thread.start()
+
+    def _run_activation(self, code, progress_dialog):
+        try:
+            result_message = license_manager.activate_license(code)
+            
+            # Update UI on main thread
+            self.after(0, lambda: self._handle_activation_result(result_message, progress_dialog))
+        except Exception as e:
+            self.after(0, lambda: self._handle_activation_result(f"Erro: {str(e)}", progress_dialog))
+
+    def _handle_activation_result(self, message, progress_dialog):
+        # Close progress dialog
+        if progress_dialog.winfo_exists():
+            progress_dialog.destroy()
+            
+        # Show result
+        if "sucesso" in message.lower():
+            messagebox.showinfo("Sucesso", message)
+        else:
+            messagebox.showerror("Erro", message)
+            
+        # Refresh UI
         self.update_license_status()
 
     # ---------- LOGO ----------

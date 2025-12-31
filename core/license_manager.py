@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 import requests
 import platform
@@ -14,14 +15,14 @@ def load_env():
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
     else:
-        base_path = os.path.dirname(os.path.abspath(__file__))
+        base_path = Path(__file__).resolve().parent.parent
 
     env_path = os.path.join(base_path, ".env")
     load_dotenv(env_path)
 
 load_env()
 
-API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
+ACTIVATE_API_URL = os.getenv("PDF_GENERATOR_ACTIVATE_API_URL")
 VALIDATE_API_URL = os.getenv("PDF_GENERATOR_VALIDATE_API_URL")
 API_KEY = os.getenv("PDF_GENERATOR_ACTIVATE_API_KEY")
 
@@ -94,7 +95,7 @@ class LicenseManager:
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {API_KEY}",
             }
-            response = requests.post(API_URL, json=payload, headers=headers, timeout=10)
+            response = requests.post(ACTIVATE_API_URL, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             
             response_data = response.json()
