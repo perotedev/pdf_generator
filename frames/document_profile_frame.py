@@ -599,8 +599,9 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self._on_select_to_map(column_name)
         
     def _go_to_page(self, page_index):
-        self.current_page_index = page_index
-        self._render_pdf_image()
+        if self.current_page_index != page_index:
+            self.current_page_index = page_index
+            self._render_pdf_image()
 
     def _remove_mapping(self, mapping: PdfFieldMapping):
         self.field_mappings.remove(mapping)
