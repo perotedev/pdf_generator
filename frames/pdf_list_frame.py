@@ -67,11 +67,11 @@ class PdfListFrame(ctk.CTkFrame):
         self.total_label.pack(side="left", padx=(0, 20))
 
         # First Page Button
-        self.first_button = ctk.CTkButton(self.pagination_container, text="❮❮", width=32, command=self._first_page)
+        self.first_button = ctk.CTkButton(self.pagination_container, text=icons.ICON_CHEVRON_LEFT_2, width=32, command=self._first_page)
         self.first_button.pack(side="left", padx=2)
         
         # Prev Button
-        self.prev_button = ctk.CTkButton(self.pagination_container, text="❮", width=32, command=self._prev_page)
+        self.prev_button = ctk.CTkButton(self.pagination_container, text=icons.ICON_CHEVRON_LEFT_1, width=32, command=self._prev_page)
         self.prev_button.pack(side="left", padx=2)
         
         # Page Selection Menu
@@ -83,11 +83,11 @@ class PdfListFrame(ctk.CTkFrame):
         self.page_info_label.pack(side="left", padx=(0, 10))
         
         # Next Button
-        self.next_button = ctk.CTkButton(self.pagination_container, text="❯", width=32, command=self._next_page)
+        self.next_button = ctk.CTkButton(self.pagination_container, text=icons.ICON_CHEVRON_RIGHT_1, width=32, command=self._next_page)
         self.next_button.pack(side="left", padx=2)
 
         # Last Page Button
-        self.last_button = ctk.CTkButton(self.pagination_container, text="❯❯", width=32, command=self._last_page)
+        self.last_button = ctk.CTkButton(self.pagination_container, text=icons.ICON_CHEVRON_RIGHT_2, width=32, command=self._last_page)
         self.last_button.pack(side="left", padx=2)
 
         # Button to open directory
