@@ -133,7 +133,7 @@ class Strings:
     STYLE_DIALOG_UNDERLINE = "Sublinhado"
     STYLE_DIALOG_CHOOSE_COLOR = "Escolher Cor"
     STYLE_DIALOG_TEXT_EXAMPLE = "Texto de Exemplo"
-    STYLE_DIALOG_SAVE = "Salvar"
+    STYLE_DIALOG_SAVE = "Confirmar"
     STYLE_DIALOG_CANCEL = "Cancelar"
 
     # Diálogo de licença

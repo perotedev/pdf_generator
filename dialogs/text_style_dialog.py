@@ -22,14 +22,14 @@ class TextStyleDialog(ctk.CTkToplevel):
         # Título e Geometria
         # Aumentei um pouco a altura para garantir que os botões não fiquem escondidos
         self.title(strings.STYLE_DIALOG_TITLE) 
-        self.geometry("350x365") 
+        self.geometry("350x380") # Aumentado de 365 para 380 para acomodar o novo checkbox
         self.resizable(False, False)
         
         # Centraliza na tela
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - 210
         y = (self.winfo_screenheight() // 2) - 225
-        self.geometry(f"350x365+{x}+{y}")
+        self.geometry(f"350x380+{x}+{y}")
         
         self.transient(master)
         self.grab_set()
@@ -82,13 +82,18 @@ class TextStyleDialog(ctk.CTkToplevel):
         self.size_slider.set(int(self.style.font_size))
         self.size_slider.pack(side="left", padx=5)
         
-        # Estilos
+        # Estilos (Negrito, Itálico, Sublinhado)
         style_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         style_frame.pack(fill="x", pady=10)
+        
         self.bold_var = ctk.BooleanVar(value=self.style.bold)
         ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_BOLD, variable=self.bold_var).pack(side="left", padx=5)
+        
         self.italic_var = ctk.BooleanVar(value=self.style.italic)
         ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_ITALIC, variable=self.italic_var).pack(side="left", padx=5)
+        
+        self.underline_var = ctk.BooleanVar(value=self.style.underline)
+        ctk.CTkCheckBox(style_frame, text=strings.STYLE_DIALOG_UNDERLINE, variable=self.underline_var).pack(side="left", padx=5)
         
         # Cor
         color_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
@@ -138,7 +143,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         self._update_preview()
         
         # Traces para o preview
-        for var in [self.font_var, self.size_var, self.bold_var, self.italic_var]:
+        for var in [self.font_var, self.size_var, self.bold_var, self.italic_var, self.underline_var]:
             var.trace_add("write", lambda *args: self._update_preview())
 
     def _get_preview_font(self):
@@ -148,7 +153,8 @@ class TextStyleDialog(ctk.CTkToplevel):
             size = 12
         weight = "bold" if self.bold_var.get() else "normal"
         slant = "italic" if self.italic_var.get() else "roman"
-        return ctk.CTkFont(family=self.font_var.get(), size=size, weight=weight, slant=slant)
+        underline = self.underline_var.get()
+        return ctk.CTkFont(family=self.font_var.get(), size=size, weight=weight, slant=slant, underline=underline)
 
     def _update_preview(self):
         self.preview_label.configure(font=self._get_preview_font(), text_color=self.style.color)
@@ -165,7 +171,16 @@ class TextStyleDialog(ctk.CTkToplevel):
             self._update_preview()
 
     def _on_save(self):
-        # Aqui você reconstrói seu objeto TextStyle com os novos valores
+        # Atualiza o objeto style com os valores atuais antes de retornar
+        self.style.font_family = self.font_var.get()
+        try:
+            self.style.font_size = int(self.size_var.get())
+        except:
+            pass
+        self.style.bold = self.bold_var.get()
+        self.style.italic = self.italic_var.get()
+        self.style.underline = self.underline_var.get()
+        
         if self.callback:
             self.callback(self.style)
         self.destroy()
