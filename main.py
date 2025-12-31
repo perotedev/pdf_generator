@@ -2,6 +2,7 @@
 import sys
 import os
 from pathlib import Path
+import webbrowser
 
 from dialogs.license_dialog import LicenseDialog
 
@@ -164,6 +165,18 @@ class App(ctk.CTk):
             command=self.show_license_dialog
         )
         self.license_button.grid(row=11, column=0, padx=20, pady=20, sticky="s")
+
+        # --- Author Link ---
+        self.author_link = ctk.CTkLabel(
+            self.navigation_frame,
+            text=strings.PROJECT_OWNER,
+            font=ctk.CTkFont(size=11, underline=True),
+            text_color=("blue", "lightblue"),
+            cursor="hand2",
+            wraplength=100
+        )
+        self.author_link.grid(row=12, column=0, padx=20, pady=(0, 20), sticky="s")
+        self.author_link.bind("<Button-1>", lambda e: webbrowser.open_new_tab(strings.OWNER_WEBSITE))
 
         # --- Frames ---
         self.spreadsheet_list_frame = SpreadsheetProfileListFrame(self, fg_color="transparent")

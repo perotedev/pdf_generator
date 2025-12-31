@@ -7,6 +7,8 @@ Similar ao strings.xml do Android
 class Strings:
     # Títulos principais
     APP_TITLE = "PDF Generator"
+    PROJECT_OWNER = "Copyright © 2025 perotedev"
+    OWNER_WEBSITE = "https://perotedev.com"
     
     # Menu de navegação
     NAV_SPREADSHEET_PROFILES = "Perfis de Planilha"
