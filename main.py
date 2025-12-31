@@ -164,7 +164,7 @@ class App(ctk.CTk):
             text=strings.NAV_MANAGE_LICENSE,
             command=self.show_license_dialog
         )
-        self.license_button.grid(row=11, column=0, padx=20, pady=20, sticky="s")
+        self.license_button.grid(row=11, column=0, padx=20, pady=(5,20), sticky="s")
 
         # --- Author Link ---
         self.author_link = ctk.CTkLabel(
