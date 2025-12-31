@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
 from pathlib import Path
+
+# Adiciona o diretório atual ao sys.path para garantir que os módulos locais sejam encontrados
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox, filedialog

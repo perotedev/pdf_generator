@@ -29,8 +29,6 @@ def build():
         f"--name={app_name}",
         f"--icon={icon_path}",
         "--add-data=assets;assets",
-        # removido poppler para usar outra lib
-        # "--add-data=poppler;poppler",
         "--add-data=.env;."
     ]
     
