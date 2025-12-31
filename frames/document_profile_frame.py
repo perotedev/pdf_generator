@@ -584,7 +584,10 @@ class DocumentProfileFrame(ctk.CTkFrame):
             def on_leave(event, f=row_frame):
                 f.configure(fg_color="transparent")
 
-            go_action = lambda event, p=pg-1: self._go_to_page(p)
+            # go_action = lambda event, p=pg-1: self._go_to_page(p)
+
+            go_action = lambda event, p=pg-1, col=mapping.column_name: self.handle_event(p, col)
+
             
             for widget in [row_frame, name_label, page_label]:
                 widget.bind("<Enter>", on_enter)
@@ -593,6 +596,12 @@ class DocumentProfileFrame(ctk.CTkFrame):
                 if widget != page_label: 
                     widget.bind("<Button-1>", go_action)
 
+    def handle_event(self, p, column_name):
+        print(f"Going to page {p}")
+        print(f"Selecting column {column_name}")
+        self._go_to_page(p)
+        self._on_select_to_map(column_name)
+        
     def _go_to_page(self, page_index):
         self.current_page_index = page_index
         self._render_pdf_image()
