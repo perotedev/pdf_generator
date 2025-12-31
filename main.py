@@ -3,6 +3,8 @@ import sys
 import os
 from pathlib import Path
 
+from dialogs.license_dialog import LicenseDialog
+
 # Ajuste para PyInstaller --onefile
 if getattr(sys, 'frozen', False):
     # Se estiver rodando como executável, o diretório base é o sys._MEIPASS
@@ -277,18 +279,14 @@ class App(ctk.CTk):
             self.remove_logo_button.configure(state="disabled")
 
     def show_license_dialog(self):
-        dialog = ctk.CTkInputDialog(
-            text="Insira seu código de licença de 25 dígitos:",
-            title="Ativação de Licença",
-        )
-        # O CTkInputDialog retorna o valor quando o botão OK é clicado
+        dialog = LicenseDialog(self)
         code = dialog.get_input()
         if code:
             # 1. Show progress dialog
             progress_dialog = ProgressDialog(
                 self,
                 title="Ativando Licença",
-                message="Conectando ao servidor e validando licença..."
+                message="Conectando ao servidor e validando licença...",
             )
             
             # 2. Run activation in a separate thread

@@ -137,6 +137,12 @@ class Strings:
     STYLE_DIALOG_SAVE = "Salvar"
     STYLE_DIALOG_CANCEL = "Cancelar"
 
+    # Diálogo de licença
+    LICENSE_DIALOG_TITLE = "Ativação de Licença"
+    LICENSE_DIALOG_ENTER_CODE = "Insira seu código de licença de 25 dígitos:"
+    LICENSE_DIALOG_CODE_PLACEHOLDER = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+    LICENSE_DIALOG_CANCEL = "Cancelar"
+    LICENSE_DIALOG_CONFIRM = "Confirmar"
 
     # Outros
     NO_PROFILES_FOUND = "Nenhum Perfil de Planilha Encontrado"
