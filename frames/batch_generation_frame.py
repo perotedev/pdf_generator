@@ -10,6 +10,7 @@ from models import DocumentProfile, SpreadsheetProfile
 from core.data_manager import data_manager
 from utils import select_file
 from core.pdf_generator import batch_generate_pdfs
+from utils.threading_utils import WorkerThread
 
 class BatchGenerationFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -185,28 +186,46 @@ class BatchGenerationFrame(ctk.CTkFrame):
         self.progressbar.grid(row=2, column=0, pady=0, padx=20, sticky="ew")
         self.progressbar.start()
 
-        try:
-            generated_count = batch_generate_pdfs(
-                spreadsheet_path=self.spreadsheet_path,
-                document_profile=self.selected_document_profile,
-                spreadsheet_profile=self.spreadsheet_profile,
-                status_callback=self._update_status,
-                base_date=base_date # Passa a data base para a função de geração
-            )
-            
-            messagebox.showinfo("Sucesso", f"Geração concluída! {generated_count} PDFs criados.")
-            
-            # Notify main app to refresh PDF list
-            if hasattr(self.master, 'refresh_data'):
-                self.master.refresh_data()
+        # Define callbacks for the worker thread
+        def on_finish(generated_count):
+            self.after(0, lambda: self._on_generation_success(generated_count))
 
-        except Exception as e:
-            messagebox.showerror("Erro de Geração", str(e))
-            self._update_status(f"Erro: {e}")
-        finally:
-            self.generate_button.configure(state="normal", text="GERAR DOCUMENTOS EM LOTE")
-            self._update_generate_button_state()
-            self.progressbar.destroy()
+        def on_error(error):
+            self.after(0, lambda: self._on_generation_error(error))
+
+        # Start generation in a background thread
+        worker = WorkerThread(
+            target=batch_generate_pdfs,
+            kwargs={
+                "spreadsheet_path": self.spreadsheet_path,
+                "document_profile": self.selected_document_profile,
+                "spreadsheet_profile": self.spreadsheet_profile,
+                "status_callback": lambda msg: self.after(0, lambda: self._update_status(msg)),
+                "base_date": base_date
+            },
+            on_finish=on_finish,
+            on_error=on_error
+        )
+        worker.start()
+
+    def _on_generation_success(self, generated_count):
+        self.progressbar.destroy()
+        self.generate_button.configure(state="normal", text="GERAR DOCUMENTOS EM LOTE")
+        self._update_generate_button_state()
+        
+        messagebox.showinfo("Sucesso", f"Geração concluída! {generated_count} PDFs criados.")
+        
+        # Notify main app to refresh PDF list
+        if hasattr(self.master, 'refresh_data'):
+            self.master.refresh_data()
+
+    def _on_generation_error(self, error):
+        self.progressbar.destroy()
+        self.generate_button.configure(state="normal", text="GERAR DOCUMENTOS EM LOTE")
+        self._update_generate_button_state()
+        
+        messagebox.showerror("Erro de Geração", str(error))
+        self._update_status(f"Erro: {error}")
 
     
     def load_profiles(self):
