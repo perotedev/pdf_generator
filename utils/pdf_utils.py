@@ -94,22 +94,6 @@ def format_date_value(value: Any, output_type: Optional[str] = None) -> str:
     except:
         return str(value).strip()
 
-def open_file_in_explorer(file_path: str):
-    """Opens the file or directory in the default file explorer (Windows specific)."""
-    if os.path.exists(file_path):
-        # On Windows, 'explorer /select,path' opens the folder and selects the file
-        # For a directory, just 'explorer path'
-        if os.path.isdir(file_path):
-            os.startfile(file_path)
-        else:
-            # This is a Windows-specific command
-            os.system(f'explorer /select,"{file_path}"')
-    else:
-        # Fallback for directory if file doesn't exist
-        dir_path = os.path.dirname(file_path)
-        if os.path.exists(dir_path):
-            os.startfile(dir_path)
-
 def get_pdf_page_count(pdf_path: str) -> int:
     try:
         doc = fitz.open(pdf_path)

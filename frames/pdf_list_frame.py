@@ -1,3 +1,4 @@
+import subprocess
 import customtkinter as ctk
 from tkinter import messagebox
 import os
@@ -6,7 +7,7 @@ from typing import List
 import math
 
 from core.data_manager import data_manager
-from utils import open_file_in_explorer
+from utils.explorer_utils import open_file, open_file_directory, open_folder
 
 class PdfListFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -262,34 +263,14 @@ class PdfListFrame(ctk.CTkFrame):
         self.list_frame._parent_canvas.yview_moveto(0)
 
     def _open_file(self, file_path: str):
-        try:
-            if os.path.exists(file_path):
-                try:
-                    open_file_in_explorer(file_path)
-                except:
-                    if os.name == 'nt':
-                        os.startfile(file_path)
-                    elif os.name == 'posix':
-                        import subprocess
-                        subprocess.call(['xdg-open', file_path])
-            else:
-                messagebox.showerror("Erro", "Arquivo não encontrado.")
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível abrir o arquivo: {e}")
+       open_file(file_path)
+    
+    def _open_folder(self, path: str):
+        open_folder(path)
 
     def _open_pdf_directory(self):
-        try:
-            pdf_dir = data_manager.pdf_base_dir
-            if os.path.exists(pdf_dir):
-                if os.name == 'nt':
-                    os.startfile(pdf_dir)
-                elif os.name == 'posix':
-                    import subprocess
-                    subprocess.call(['xdg-open', pdf_dir])
-            else:
-                messagebox.showerror("Erro", "Diretório não encontrado.")
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível abrir o diretório: {e}")
+       pdf_dir = data_manager.pdf_base_dir
+       open_file_directory(pdf_dir)
 
     def refresh_data(self):
         self._load_pdfs()
