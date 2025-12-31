@@ -42,18 +42,22 @@ class PdfListFrame(ctk.CTkFrame):
         self.search_var.trace_add("write", lambda name, index, mode: self._filter_pdfs())
 
         # PDF List Display
-        self.list_frame = ctk.CTkScrollableFrame(self, label_text="Arquivos PDF") # Defina uma altura inicial
+        self.list_frame = ctk.CTkScrollableFrame(self, label_text="Arquivos PDF")
         self.list_frame.grid(row=2, column=0, padx=20, pady=10, sticky="nsew")
+        
+        # Configura a coluna interna do scrollable frame para expandir
+        self.list_frame.grid_columnconfigure(0, weight=1)
 
         # Button to open directory
         self.open_dir_button = ctk.CTkButton(self, text="Abrir Pasta de PDFs", command=self._open_pdf_directory)
         self.open_dir_button.grid(row=3, column=0, padx=20, pady=(10, 20), sticky="e")
+        
+        # Ajuste do wrap quando o frame é redimensionado
         self.list_frame.bind("<Configure>", lambda event: self.after(100, lambda: self.update_wrap(event)) if event.width else None)
 
         self._load_pdfs()
 
     def _load_pdfs(self):
-        # Atualiza os menus de filtro
         years = ["Todos"] + data_manager.get_available_years()
         self.year_menu.configure(values=years)
         
@@ -65,7 +69,6 @@ class PdfListFrame(ctk.CTkFrame):
             self.month_menu.configure(values=["Todos"])
             self.month_var.set("Todos")
 
-        # Carrega os PDFs baseados nos filtros de diretório
         y = None if self.year_var.get() == "Todos" else self.year_var.get()
         m = None if self.month_var.get() == "Todos" else self.month_var.get()
         
@@ -91,13 +94,14 @@ class PdfListFrame(ctk.CTkFrame):
         if event is None:
             wrap = 550
         else:
-            wrap = max(event.width - 520, 550)
+            # Ajuste dinâmico do wrap baseado na largura do frame
+            wrap = max(event.width - 600, 300)
 
         for label in self.file_labels:
             label.configure(wraplength=wrap)
             
     def _update_list_display(self):
-        # Clear existing widgets
+        # Limpa widgets existentes
         for widget in self.list_frame.winfo_children():
             widget.destroy()
 
@@ -105,19 +109,23 @@ class PdfListFrame(ctk.CTkFrame):
             ctk.CTkLabel(self.list_frame, text="Nenhum PDF encontrado.").grid(row=0, column=0, padx=20, pady=20)
             return
 
-        self.list_frame.grid_columnconfigure(0, weight=1)
-        self.list_frame.grid_columnconfigure(4, weight=0)
-        self.list_frame.grid_rowconfigure(0, weight=1)
-        self.left_wraper = ctk.CTkFrame(self.list_frame)
-        self.left_wraper.grid(row=0, column=0, columnspan=3, padx=0, pady=0, sticky="nsew")
-        self.right_wraper = ctk.CTkFrame(self.list_frame, width=280)
-        self.right_wraper.grid(row=0, column=4, padx=0, pady=0, sticky="nsew")
-        self.right_wraper.grid_propagate(False)
+        # Criamos o container principal diretamente no list_frame
+        # Importante: Não definir largura fixa aqui para não quebrar o scroll
+        self.main_container = ctk.CTkFrame(self.list_frame, fg_color="transparent")
+        self.main_container.grid(row=0, column=0, sticky="ew")
+        self.main_container.grid_columnconfigure(0, weight=1) # Nome (Expansível)
+        self.main_container.grid_columnconfigure(1, weight=0) # Ano
+        self.main_container.grid_columnconfigure(2, weight=0) # Mês
+        self.main_container.grid_columnconfigure(3, weight=0) # Data
+        self.main_container.grid_columnconfigure(4, weight=0) # Ação
 
         # Header Row
-        ctk.CTkLabel(self.left_wraper, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="sw")
-        ctk.CTkLabel(self.right_wraper, text="Data de Criação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        ctk.CTkLabel(self.right_wraper, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=(10,0), pady=5, sticky="ew")
+        ctk.CTkLabel(self.main_container, text="Nome do Arquivo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(self.main_container, text="Ano", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=1, padx=10, pady=5)
+        ctk.CTkLabel(self.main_container, text="Mês", font=ctk.CTkFont(weight="bold"), width=40).grid(row=0, column=2, padx=10, pady=5)
+        ctk.CTkLabel(self.main_container, text="Data Criação", font=ctk.CTkFont(weight="bold"), width=120).grid(row=0, column=3, padx=10, pady=5)
+        ctk.CTkLabel(self.main_container, text="Ação", font=ctk.CTkFont(weight="bold"), width=140).grid(row=0, column=4, padx=10, pady=5, sticky="e")
+        
         self.file_labels: List[ctk.CTkLabel] = []
 
         # Data Rows
@@ -125,21 +133,36 @@ class PdfListFrame(ctk.CTkFrame):
             row = i + 1
             filename = os.path.basename(pdf_path)
             
+            path_parts = os.path.normpath(pdf_path).split(os.sep)
             try:
-                # Get creation time and format it
+                file_year = path_parts[-3]
+                file_month = path_parts[-2]
+            except IndexError:
+                file_year = "-"
+                file_month = "-"
+
+            try:
                 timestamp = os.path.getctime(pdf_path)
-                creation_date = datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M")
+                creation_date = datetime.fromtimestamp(timestamp).strftime("%d/%m/%y %H:%M")
             except:
-                creation_date = "N/A"
+                creation_date = "-"
 
-            file_label = ctk.CTkLabel(self.left_wraper, text=filename, justify="left")
-            file_label.grid(row=row, column=0, padx=10, pady=5, sticky="sw")
+            file_label = ctk.CTkLabel(self.main_container, text=filename, justify="left")
+            file_label.grid(row=row, column=0, padx=10, pady=5, sticky="w")
             self.file_labels.append(file_label)
-            ctk.CTkLabel(self.right_wraper, text=creation_date).grid(row=row, column=0, padx=10, pady=5, sticky="ew")
-            open_button = ctk.CTkButton(self.right_wraper, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
-            open_button.grid(row=row, column=1, padx=(10,0), pady=5, sticky="ew")
+            
+            ctk.CTkLabel(self.main_container, text=file_year, width=60).grid(row=row, column=1, padx=10, pady=5)
+            ctk.CTkLabel(self.main_container, text=file_month, width=40).grid(row=row, column=2, padx=10, pady=5)
+            ctk.CTkLabel(self.main_container, text=creation_date, width=120).grid(row=row, column=3, padx=10, pady=5)
+            
+            open_button = ctk.CTkButton(self.main_container, text="Abrir arquivo", width=120, command=lambda p=pdf_path: self._open_file(p))
+            open_button.grid(row=row, column=4, padx=10, pady=5, sticky="e")
 
+        # Força a atualização do layout para calcular o tamanho correto
         self.list_frame.update_idletasks()
+        
+        # O segredo para o scroll funcionar com grid é garantir que o canvas interno saiba o tamanho do conteúdo
+        # No CTkScrollableFrame, isso geralmente é automático, mas em layouts complexos podemos ajudar:
         self.list_frame._parent_canvas.configure(scrollregion=self.list_frame._parent_canvas.bbox("all"))
 
     def _open_file(self, file_path: str):
