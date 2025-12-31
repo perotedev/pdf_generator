@@ -9,8 +9,8 @@ PageOrientation = Literal["portrait", "landscape"]
 @dataclass
 class TextStyle:
     """Estilo de texto para campos mapeados"""
-    font_family: str = "Helvetica"
-    font_size: int = 10
+    font_family: str = "Arial"
+    font_size: int = 12
     bold: bool = False
     italic: bool = False
     underline: bool = False

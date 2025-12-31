@@ -63,7 +63,7 @@ class TextStyleDialog(ctk.CTkToplevel):
         
     def _create_widgets(self):
         # Container principal
-        main_frame = ctk.CTkFrame(self)
+        main_frame = ctk.CTkFrame(self, fg_color=self.cget("fg_color"))
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         # Fonte
@@ -213,7 +213,8 @@ class TextStyleDialog(ctk.CTkToplevel):
         """Abre o seletor de cor"""
         color = colorchooser.askcolor(
             initialcolor=self.style.color,
-            title=strings.STYLE_CHOOSE_COLOR
+            title=strings.STYLE_CHOOSE_COLOR,
+            parent=self.winfo_toplevel()
         )
         if color[1]:  # color[1] é o valor hexadecimal
             self.style.color = color[1]
