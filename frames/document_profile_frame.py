@@ -82,11 +82,11 @@ class DocumentProfileFrame(ctk.CTkFrame):
 
         # Page Format Frame
         self.format_frame = ctk.CTkFrame(self.wrapper)
-        self.format_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.format_frame.grid(row=2, column=0, padx=20, pady=0, sticky="ew")
         self.format_frame.grid_columnconfigure(0, weight=1)
         self.format_frame.grid_columnconfigure(1, weight=1)
         
-        ctk.CTkLabel(self.format_frame, text=strings.DOC_PAGE_FORMAT).grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+        ctk.CTkLabel(self.format_frame, text=strings.DOC_PAGE_FORMAT).grid(row=0, column=0, padx=10, pady=(5, 0), sticky="w")
         self.page_format_var = ctk.StringVar(value="A4")
         self.page_format_menu = ctk.CTkOptionMenu(
             self.format_frame,
@@ -96,7 +96,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         )
         self.page_format_menu.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="ew")
         
-        ctk.CTkLabel(self.format_frame, text=strings.DOC_PAGE_ORIENTATION).grid(row=0, column=1, padx=10, pady=(10, 5), sticky="w")
+        ctk.CTkLabel(self.format_frame, text=strings.DOC_PAGE_ORIENTATION).grid(row=0, column=1, padx=10, pady=(5,0), sticky="w")
         self.page_orientation_var = ctk.StringVar(value=strings.DOC_ORIENTATION_PORTRAIT)
         self.page_orientation_menu = ctk.CTkOptionMenu(
             self.format_frame,
@@ -126,22 +126,22 @@ class DocumentProfileFrame(ctk.CTkFrame):
         
         # Mapping Input
         self.mapping_input_frame = ctk.CTkFrame(self.wrapper)
-        self.mapping_input_frame.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+        self.mapping_input_frame.grid(row=4, column=0, padx=20, pady=0, sticky="ew")
         self.mapping_input_frame.grid_columnconfigure(0, weight=1)
         
-        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_1, font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_1, font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=10, pady=(5, 0), sticky="w")
         
         self.column_menu = ctk.CTkOptionMenu(self.mapping_input_frame,
                                              variable=self.label_values["to_map"],
                                              values=[strings.DOC_SELECT_COLUMN],
                                              command=self._on_select_to_map)
-        self.column_menu.grid(row=1, column=0, padx=10, pady=(5, 10), sticky="ew")
+        self.column_menu.grid(row=1, column=0, padx=10, pady=(0, 5), sticky="ew")
         
-        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_2, font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
+        ctk.CTkLabel(self.mapping_input_frame, text=strings.DOC_STEP_2, font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, padx=10, pady=(0, 5), sticky="w")
         
         # Mapping Display Area
         self.mapping_display_frame = ctk.CTkScrollableFrame(self.wrapper, label_text=strings.DOC_CURRENT_MAPPINGS)
-        self.mapping_display_frame.grid(row=5, column=0, padx=20, pady=10, sticky="nsew")
+        self.mapping_display_frame.grid(row=5, column=0, padx=20, pady=(10, 0), sticky="nsew")
         self.mapping_display_frame.grid_columnconfigure(0, weight=1)
 
         # Save Button
@@ -534,35 +534,56 @@ class DocumentProfileFrame(ctk.CTkFrame):
             widget.destroy()
 
         if not self.field_mappings:
-            ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_NO_MAPPINGS).grid(row=0, column=0, padx=20, pady=20)
+            ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_NO_MAPPINGS).grid(row=0, column=0, padx=20, pady=0)
             return
-
-        ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_COLUMN_HEADER, font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_PAGE_HEADER, font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.mapping_display_frame, text=strings.DOC_ACTION_HEADER, font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        
+        ICON_PAINT = "🎨" 
 
         for i, mapping in enumerate(sorted(self.field_mappings, key=lambda x: (getattr(x, 'page_index', 0), x.column_name))):
             row = i + 1
             pg = getattr(mapping, 'page_index', 0) + 1
-            col_name = self._set_text_wrap(mapping.column_name, max_len=20)
+            col_name = self._set_text_wrap(mapping.column_name, max_len=21)
             
-            ctk.CTkLabel(self.mapping_display_frame, text=col_name).grid(row=row, column=0, padx=5, pady=2, sticky="w")
-            ctk.CTkLabel(self.mapping_display_frame, text=str(pg)).grid(row=row, column=1, padx=5, pady=2, sticky="w")
+            row_frame = ctk.CTkFrame(self.mapping_display_frame, fg_color="transparent", corner_radius=4, cursor="hand2")
+            row_frame.grid(row=row, column=0, columnspan=3, padx=0, pady=0, sticky="ew")
+            row_frame.grid_columnconfigure(0, weight=1)
+
+            name_label = ctk.CTkLabel(row_frame, text=col_name)
+            name_label.grid(row=0, column=0, padx=5, pady=4, sticky="w")
             
-            btn_frame = ctk.CTkFrame(self.mapping_display_frame, fg_color="transparent")
-            btn_frame.grid(row=row, column=2, padx=5, pady=2)
+            page_label = ctk.CTkLabel(row_frame, text=f"{strings.DOC_PAGE_PREFIX} {pg}")
+            page_label.grid(row=0, column=1, padx=5, pady=4)
             
-            # Botão para ir até a página do mapeamento
-            go_btn = ctk.CTkButton(btn_frame, text=strings.DOC_VIEW_BUTTON, width=40, command=lambda p=pg-1: self._go_to_page(p))
-            go_btn.pack(side="left", padx=2)
+            btn_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+            btn_frame.grid(row=0, column=2, padx=5, pady=2)
             
-            # Botão para editar estilo
-            style_btn = ctk.CTkButton(btn_frame, text=strings.DOC_EDIT_STYLE, width=50, command=lambda m=mapping: self._edit_mapping_style(m), fg_color="blue")
+            style_btn = ctk.CTkButton(
+                btn_frame, 
+                text=ICON_PAINT,
+                width=28,
+                command=lambda m=mapping: self._edit_mapping_style(m), 
+                fg_color="blue",
+                font=("Arial", 14)
+            )
             style_btn.pack(side="left", padx=2)
             
-            # Botão para remover
-            del_btn = ctk.CTkButton(btn_frame, text=strings.DOC_REMOVE_BUTTON, width=60, command=lambda m=mapping: self._remove_mapping(m), fg_color="red")
-            del_btn.pack(side="left", padx=2)
+            del_btn = ctk.CTkButton(btn_frame, text=strings.DOC_REMOVE_BUTTON, width=28, command=lambda m=mapping: self._remove_mapping(m), fg_color="red")
+            del_btn.pack(side="left", padx=(2,0))
+
+            def on_enter(event, f=row_frame):
+                f.configure(fg_color=("gray85", "gray25")) # Cor para modo claro e escuro
+
+            def on_leave(event, f=row_frame):
+                f.configure(fg_color="transparent")
+
+            go_action = lambda event, p=pg-1: self._go_to_page(p)
+            
+            for widget in [row_frame, name_label, page_label]:
+                widget.bind("<Enter>", on_enter)
+                widget.bind("<Leave>", on_leave)
+                
+                if widget != page_label: 
+                    widget.bind("<Button-1>", go_action)
 
     def _go_to_page(self, page_index):
         self.current_page_index = page_index

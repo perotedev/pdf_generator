@@ -249,10 +249,13 @@ class App(ctk.CTk):
             self.logo_button.configure(state="normal")
             self.remove_logo_button.configure(state="normal")
             if company:
+                self.navigation_frame_label.grid_forget()
                 self.company_label.configure(text=company)
-                self.company_label.grid(row=12, column=0, padx=20, pady=(0, 10), sticky="s")
+                self.company_label.grid(row=1, column=0, padx=20, pady=10)
             else:
                 self.company_label.grid_forget()
+                self.navigation_frame_label.configure(text=strings.APP_TITLE)
+                self.navigation_frame_label.grid(row=1, column=0, padx=20, pady=10)
         else:
             self.license_expiration.configure(text="")
             self.company_label.grid_forget()
@@ -271,9 +274,9 @@ class App(ctk.CTk):
         if logo_path and Path(logo_path).exists():
             try:
                 logo_image = Image.open(logo_path)
-                logo_image = logo_image.resize((140, 140), Image.Resampling.LANCZOS)
-                logo_photo = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(140, 140))
-                self.logo_button.configure(image=logo_photo, text="", fg_color=self.original_logo_fg)
+                logo_image = logo_image.resize((123, 123), Image.Resampling.LANCZOS)
+                logo_photo = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(123, 123))
+                self.logo_button.configure(image=logo_photo, text="", fg_color="transparent")
                 self.logo_button._image = logo_photo
                 self.remove_logo_button.grid(row=1, column=0, pady=(5, 0))
             except Exception as e:
