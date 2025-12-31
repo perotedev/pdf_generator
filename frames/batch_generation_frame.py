@@ -91,7 +91,7 @@ class BatchGenerationFrame(ctk.CTkFrame):
         self.status_frame.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(self.status_frame, text="Status:", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=20, pady=(10, 0), sticky="w")
         ctk.CTkLabel(self.status_frame, textvariable=self.status_var, wraplength=1200).grid(row=1, column=0, padx=20, pady=(0, 20), sticky="w")
-
+        
         self._load_profiles()
 
     def _load_profiles(self):
@@ -180,6 +180,10 @@ class BatchGenerationFrame(ctk.CTkFrame):
 
         self.generate_button.configure(state="disabled", text="GERANDO...")
         self._update_status("Iniciando geração...")
+        
+        self.progressbar = ctk.CTkProgressBar(self.status_frame, orientation="horizontal", mode="indeterminate")
+        self.progressbar.grid(row=2, column=0, pady=0, padx=20, sticky="ew")
+        self.progressbar.start()
 
         try:
             generated_count = batch_generate_pdfs(
@@ -189,6 +193,7 @@ class BatchGenerationFrame(ctk.CTkFrame):
                 status_callback=self._update_status,
                 base_date=base_date # Passa a data base para a função de geração
             )
+            
             messagebox.showinfo("Sucesso", f"Geração concluída! {generated_count} PDFs criados.")
             
             # Notify main app to refresh PDF list
@@ -201,6 +206,8 @@ class BatchGenerationFrame(ctk.CTkFrame):
         finally:
             self.generate_button.configure(state="normal", text="GERAR DOCUMENTOS EM LOTE")
             self._update_generate_button_state()
+            self.progressbar.destroy()
+
     
     def load_profiles(self):
         self._load_profiles()
