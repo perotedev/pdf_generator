@@ -23,6 +23,9 @@ def build():
         '--add-data=resources;resources',
         '--add-data=.env;.',
         '--icon=assets/pdf_generator.ico',
+        '--splash=assets/splash_with_space.png',
+        '--splash-text-pos=250,450',
+        '--splash-font-size=12',
         '--clean',
         '--noconfirm',
     ]

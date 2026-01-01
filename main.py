@@ -4,6 +4,12 @@ import os
 from pathlib import Path
 import webbrowser
 
+# Import splash screen module (only available when running as executable)
+try:
+    import pyi_splash
+except ImportError:
+    pyi_splash = None
+
 from dialogs.license_dialog import LicenseDialog
 
 # Ajuste para PyInstaller --onefile
@@ -186,12 +192,27 @@ class App(ctk.CTk):
         self.batch_frame = BatchGenerationFrame(self, fg_color="transparent")
         self.list_frame = PdfListFrame(self, fg_color="transparent")
 
+        if pyi_splash:
+            pyi_splash.update_text("Carregando logo...")
         self.load_logo()
+        
+        if pyi_splash:
+            pyi_splash.update_text("Iniciando interface...")
         self.select_frame_by_name("list")
+        
+        if pyi_splash:
+            pyi_splash.update_text("Verificando licença...")
         self.update_license_status()
         
         # Start background license validation
         threading.Thread(target=self.validate_license_startup, daemon=True).start()
+
+        # Close splash screen when main window is ready
+        if pyi_splash:
+            import time
+            pyi_splash.update_text("Pronto!")
+            time.sleep(0.5)
+            pyi_splash.close()
 
     # ---------- REFRESH ----------
     def refresh_data(self):
