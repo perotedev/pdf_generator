@@ -4,15 +4,12 @@ import pandas as pd
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from datetime import datetime
-import platform
 import getpass
 from typing import Dict, Any, List
 import fitz
 
-from models import DocumentProfile, SpreadsheetProfile, ColumnType, PdfFieldMapping, TextStyle
+from models import DocumentProfile, SpreadsheetProfile, PdfFieldMapping, TextStyle
 from utils import format_date_value, format_cpf, format_cnpj, format_phone, get_page_size
 
 # PDF coordinates are typically measured from the bottom-left corner.
@@ -201,7 +198,7 @@ def batch_generate_pdfs(
     # 1. Read Spreadsheet Data
     try:
         header_idx = spreadsheet_profile.header_row
-        df = pd.read_excel(spreadsheet_path, header=header_idx)
+        df = pd.read_excel(spreadsheet_path, header=header_idx-1)
     except Exception as e:
         raise Exception(f"Erro ao ler a planilha: {e}")
 
