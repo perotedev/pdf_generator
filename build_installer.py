@@ -21,6 +21,7 @@ def build():
         '--noconsole',
         '--add-data=assets;assets',
         '--add-data=resources;resources',
+        '--add-data=.env;.',
         '--icon=assets/pdf_generator.ico',
         '--clean',
         '--noconfirm',

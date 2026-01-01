@@ -13,11 +13,18 @@ import os
 
 def load_env():
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        # No modo --onedir, o .env fica na raiz da pasta do executável, 
+        # que é o diretório do sys.executable
+        base_path = os.path.dirname(sys.executable)
     else:
         base_path = Path(__file__).resolve().parent.parent
 
     env_path = os.path.join(base_path, ".env")
+    
+    # Se não encontrar na raiz do executável, tenta no _MEIPASS (onde o PyInstaller coloca arquivos de dados)
+    if not os.path.exists(env_path) and getattr(sys, 'frozen', False):
+        env_path = os.path.join(sys._MEIPASS, ".env")
+        
     load_dotenv(env_path)
 
 load_env()
