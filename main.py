@@ -114,29 +114,29 @@ class App(ctk.CTk):
         )
 
         # Buttons
+        self.pdf_list_button = ctk.CTkButton(
+            self.navigation_frame, text=strings.NAV_GENERATED_PDFS,
+            command=lambda: self.select_frame_by_name("list")
+        )
+        self.pdf_list_button.grid(row=2, column=0, padx=20, pady=(10, 5))
+
         self.spreadsheet_profile_button = ctk.CTkButton(
             self.navigation_frame, text=strings.NAV_SPREADSHEET_PROFILES,
             command=lambda: self.select_frame_by_name("spreadsheet_list")
         )
-        self.spreadsheet_profile_button.grid(row=2, column=0, padx=20, pady=(10, 5))
+        self.spreadsheet_profile_button.grid(row=3, column=0, padx=20, pady=5)
 
         self.document_profile_button = ctk.CTkButton(
             self.navigation_frame, text=strings.NAV_DOCUMENT_PROFILES,
             command=lambda: self.select_frame_by_name("document_list")
         )
-        self.document_profile_button.grid(row=3, column=0, padx=20, pady=5)
+        self.document_profile_button.grid(row=4, column=0, padx=20, pady=5)
 
         self.batch_generate_button = ctk.CTkButton(
             self.navigation_frame, text=strings.NAV_BATCH_GENERATE,
             command=lambda: self.select_frame_by_name("batch")
         )
-        self.batch_generate_button.grid(row=4, column=0, padx=20, pady=5)
-
-        self.pdf_list_button = ctk.CTkButton(
-            self.navigation_frame, text=strings.NAV_GENERATED_PDFS,
-            command=lambda: self.select_frame_by_name("list")
-        )
-        self.pdf_list_button.grid(row=5, column=0, padx=20, pady=5)
+        self.batch_generate_button.grid(row=5, column=0, padx=20, pady=5)
 
         self.export_button = ctk.CTkButton(
             self.navigation_frame, text=strings.NAV_EXPORT_PROFILES,
@@ -214,6 +214,32 @@ class App(ctk.CTk):
             if hasattr(frame, "clear_form") and frame.winfo_viewable():
                 frame.clear_form()
             frame.grid_forget()
+
+        # Update button styles to highlight active frame with borders
+        active_fg = ["#3276AD", "#144870"]
+        default_fg = ["#3B8ED0", "#1F6AA5"]
+        border_color = "#1F6AA5"
+
+        self.pdf_list_button.configure(
+            fg_color=active_fg if name == "list" else default_fg,
+            border_width=2 if name == "list" else 0,
+            border_color=border_color if name == "list" else default_fg
+        )
+        self.spreadsheet_profile_button.configure(
+            fg_color=active_fg if name in ("spreadsheet_list", "spreadsheet_create", "spreadsheet_edit") else default_fg,
+            border_width=2 if name in ("spreadsheet_list", "spreadsheet_create", "spreadsheet_edit") else 0,
+            border_color=border_color if name in ("spreadsheet_list", "spreadsheet_create", "spreadsheet_edit") else default_fg
+        )
+        self.document_profile_button.configure(
+            fg_color=active_fg if name in ("document_list", "document_create", "document_edit") else default_fg,
+            border_width=2 if name in ("document_list", "document_create", "document_edit") else 0,
+            border_color=border_color if name in ("document_list", "document_create", "document_edit") else default_fg
+        )
+        self.batch_generate_button.configure(
+            fg_color=active_fg if name == "batch" else default_fg,
+            border_width=2 if name == "batch" else 0,
+            border_color=border_color if name == "batch" else default_fg
+        )
 
         if name == "spreadsheet_list":
             self.spreadsheet_list_frame.refresh_data()
