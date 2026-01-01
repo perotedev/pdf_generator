@@ -7,5 +7,6 @@ dist
 build
 PDF_Generator.spec
 PDF Generator.spec
+SGPP.spec
 installer_output
 .env
