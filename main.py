@@ -3,22 +3,12 @@ import sys
 import os
 from pathlib import Path
 import webbrowser
-import ctypes
 
 # Import splash screen module (only available when running as executable)
 try:
     import pyi_splash
 except ImportError:
     pyi_splash = None
-
-# DPI Awareness para evitar que a splash mude de tamanho no Windows
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    try:
-        ctypes.windll.user32.SetProcessDPIAware()
-    except Exception:
-        pass
 
 def update_splash_status(text):
     # Texto de carregamento removido conforme solicitado
@@ -224,6 +214,8 @@ class App(ctk.CTk):
         if pyi_splash:
             try:
                 pyi_splash.close()
+                # Garante que a janela principal ganhe foco após a splash fechar
+                self.after(100, self.focus_force)
             except Exception:
                 pass
 

@@ -24,6 +24,7 @@ def build():
         '--add-data=.env;.',
         '--icon=assets/pdf_generator.ico',
         '--splash=assets/splash_min.png',
+        '--manifest=dpi_aware.manifest',
         '--clean',
         '--noconfirm',
     ]
