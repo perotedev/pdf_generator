@@ -5,7 +5,7 @@
 ; ID único do aplicativo (NÃO mude este ID em versões futuras para que a atualização funcione)
 AppId={{A1B2C3D4-E5F6-4G7H-8I9J-K0L1M2N3O4P5}
 AppName=SGPP
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=PeroteDev
 AppPublisherURL=https://perotedev.com
 DefaultDirName={autopf}\SGPP
