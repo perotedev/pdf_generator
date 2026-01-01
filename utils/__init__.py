@@ -17,7 +17,7 @@ from .pdf_utils import (
 
 from .explorer_utils import open_file, open_file_directory, open_folder
 from .scroll_helper import bind_mousewheel, bind_mousewheel_to_scrollable_frame
-
+from .threading_utils import WorkerThread
 
 
 __all__ = [
@@ -38,5 +38,6 @@ __all__ = [
     'open_file_directory',
     'open_folder',
     'bind_mousewheel', 
-    'bind_mousewheel_to_scrollable_frame'
+    'bind_mousewheel_to_scrollable_frame',
+    'WorkerThread'
 ]

@@ -107,7 +107,7 @@ class SpreadsheetProfileFrame(ctk.CTkFrame):
                 ) for i, h in enumerate(headers)
             ]
             if not self.profile_name_var.get():
-                self.profile_name_var.set(os.path.basename(self.file_path).split('.')[0] + "_Profile")
+                self.profile_name_var.set(os.path.basename(self.file_path).split('.')[0])
             self._update_mapping_display()
         except Exception as e:
             messagebox.showerror(strings.ERROR_TITLE, str(e))
