@@ -5,7 +5,7 @@
 ; ID único do aplicativo (NÃO mude este ID em versões futuras para que a atualização funcione)
 AppId={{A1B2C3D4-E5F6-4G7H-8I9J-K0L1M2N3O4P5}
 AppName=PDF Generator
-AppVersion=1.0.1
+AppVersion=1.0.2
 AppPublisher=PeroteDev
 AppPublisherURL=https://perotedev.com
 DefaultDirName={autopf}\PDF Generator
@@ -15,7 +15,7 @@ AllowNoIcons=yes
 SetupIconFile=assets\pdf_generator.ico
 ; Onde o instalador será salvo
 OutputDir=installer_output
-OutputBaseFilename=PDF_Generator_Setup
+OutputBaseFilename=PDF_Generator_Setup_1_0_2
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
