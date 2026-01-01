@@ -37,8 +37,8 @@ class LicenseDialog(ctk.CTkToplevel):
         self.ok_button = ctk.CTkButton(self.button_frame, text=strings.LICENSE_DIALOG_CONFIRM, width=0, command=self._on_ok)
         self.ok_button.pack(side="right", padx=(10,5), expand=True, fill="x")
 
-        self.cancel_button = ctk.CTkButton(self.button_frame, text=strings.LICENSE_DIALOG_CANCEL, fg_color="transparent", border_width=2, width=0, command=self._on_cancel)
-        self.cancel_button.pack(side="right", padx=(5,10), expand=True, fill="x")
+        self.cancel_button = ctk.CTkButton(self.button_frame, text=strings.LICENSE_DIALOG_CANCEL, text_color=("black", "white"), fg_color="transparent", border_width=2, width=0, command=self._on_cancel)
+        self.cancel_button.pack(side="left", padx=(5,10), expand=True, fill="x")
 
         # Bind da tecla Enter
         self.bind("<Return>", lambda e: self._on_ok())
