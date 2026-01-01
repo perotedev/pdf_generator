@@ -58,9 +58,9 @@ class App(ctk.CTk):
         # --- Ícone ---
         assets_dir = Path(__file__).resolve().parent / "assets"
         try:
-            if (ico := assets_dir / "pdf_generator.ico").exists():
+            if (ico := assets_dir / "sgpp.ico").exists():
                 self.iconbitmap(str(ico))
-            elif (png := assets_dir / "pdf_generator.png").exists():
+            elif (png := assets_dir / "sgpp.png").exists():
                 self._icon_image = tk.PhotoImage(file=str(png))
                 self.iconphoto(True, self._icon_image)
         except Exception as e:

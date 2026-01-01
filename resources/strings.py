@@ -6,7 +6,7 @@ Similar ao strings.xml do Android
 
 class Strings:
     # Títulos principais
-    APP_TITLE = "PDF Generator"
+    APP_TITLE = "SGPP"
     PROJECT_OWNER = "Copyright © 2025 perotedev"
     OWNER_WEBSITE = "https://perotedev.com"
     

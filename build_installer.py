@@ -5,7 +5,7 @@ import shutil
 
 def build():
     # Nome do projeto
-    project_name = "PDF Generator"
+    project_name = "SGPP"
     
     # Limpar pastas de build anteriores
     for folder in ['build', 'dist']:
@@ -22,8 +22,8 @@ def build():
         '--add-data=assets;assets',
         '--add-data=resources;resources',
         '--add-data=.env;.',
-        '--icon=assets/pdf_generator.ico',
-        '--splash=assets/splash_min.png',
+        '--icon=assets/sgpp.ico',
+        '--splash=assets/splash_sgpp.png',
         '--manifest=dpi_aware.manifest',
         '--clean',
         '--noconfirm',

@@ -6,13 +6,13 @@ import sys
 
 def build():
     # Nome do executável
-    app_name = "PDF_Generator"
+    app_name = "SGPP"
     
     # Arquivo principal
     main_script = "main.py"
     
     # Ícone
-    icon_path = os.path.join("assets", "pdf_generator.ico")
+    icon_path = os.path.join("assets", "sgpp.ico")
     
     # Diretório do script
     script_dir = os.path.dirname(os.path.abspath(__file__))

@@ -1,21 +1,21 @@
-; Script do Inno Setup para o PDF Generator
+; Script do Inno Setup para o SGPP
 ; Este script cria um instalador profissional com suporte a atalhos, registro e atualizações.
 
 [Setup]
 ; ID único do aplicativo (NÃO mude este ID em versões futuras para que a atualização funcione)
 AppId={{A1B2C3D4-E5F6-4G7H-8I9J-K0L1M2N3O4P5}
-AppName=PDF Generator
+AppName=SGPP
 AppVersion=1.0.0
 AppPublisher=PeroteDev
 AppPublisherURL=https://perotedev.com
-DefaultDirName={autopf}\PDF Generator
-DefaultGroupName=PDF Generator
+DefaultDirName={autopf}\PeroteDev
+DefaultGroupName=PeroteDev
 AllowNoIcons=yes
 ; Ícone do instalador
-SetupIconFile=assets\pdf_generator.ico
+SetupIconFile=assets\sgpp.ico
 ; Onde o instalador será salvo
 OutputDir=installer_output
-OutputBaseFilename=PDF_Generator_Setup
+OutputBaseFilename=SGPP_Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -28,15 +28,15 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Inclui todos os arquivos gerados pelo PyInstaller na pasta dist
-Source: "dist\PDF Generator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\SGPP\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\PDF Generator"; Filename: "{app}\PDF Generator.exe"
-Name: "{group}\{cm:UninstallProgram,PDF Generator}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\PDF Generator"; Filename: "{app}\PDF Generator.exe"; Tasks: desktopicon
+Name: "{group}\SGPP"; Filename: "{app}\SGPP.exe"
+Name: "{group}\{cm:UninstallProgram,SGPP}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\SGPP"; Filename: "{app}\SGPP.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\PDF Generator.exe"; Description: "{cm:LaunchProgram,PDF Generator}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\SGPP.exe"; Description: "{cm:LaunchProgram,SGPP}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
