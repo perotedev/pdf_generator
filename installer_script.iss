@@ -8,8 +8,8 @@ AppName=SGPP
 AppVersion=1.0.0
 AppPublisher=PeroteDev
 AppPublisherURL=https://perotedev.com
-DefaultDirName={autopf}\PeroteDev
-DefaultGroupName=PeroteDev
+DefaultDirName={autopf}\SGPP
+DefaultGroupName=SGPP
 AllowNoIcons=yes
 ; Ícone do instalador
 SetupIconFile=assets\sgpp.ico
