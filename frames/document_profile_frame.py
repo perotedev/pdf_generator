@@ -5,7 +5,7 @@ import os
 from typing import List, Optional
 from models import DocumentProfile, SpreadsheetProfile, PdfFieldMapping, TextStyle, PageFormat, PageOrientation
 from core.data_manager import data_manager
-from utils import select_file, render_pdf_to_image, get_pdf_page_count, get_page_size_mm
+from utils import select_file, render_pdf_to_image, get_pdf_page_count, get_page_size_mm, WorkerThread
 from PIL import Image, ImageTk
 import threading
 from dialogs import ProgressDialog, TextStyleDialog
@@ -291,14 +291,37 @@ class DocumentProfileFrame(ctk.CTkFrame):
         elif event.num == 5 or event.delta < 0:
             self.pdf_canvas.yview_scroll(1, "units")
 
-    def load_profile_for_editing(self, profile: DocumentProfile, progress_dialog:Optional[ProgressDialog]):
+    def _load_profile_data_worker(self, profile: DocumentProfile):
+        """Função para carregar dados pesados em background"""
+        total_pages = get_pdf_page_count(profile.pdf_path)
+        pdf_image = render_pdf_to_image(profile.pdf_path, 0, dpi=150)
+        return total_pages, pdf_image
+
+    def _on_profile_load_finished(self, result, profile: DocumentProfile, progress_dialog: Optional[ProgressDialog]):
+        """Callback executado após o carregamento em background"""
+        total_pages, pdf_image = result
+        self.total_pages = total_pages
+        self.pdf_image = pdf_image
+        self.current_page_index = 0
+        
+        # Atualiza UI
+        self._on_profile_select(profile.spreadsheet_profile_name)
+        self._on_select_to_title(profile.title_column)
+        self._update_mapping_display()
+        self._update_page_controls()
+        self._on_canvas_resize()
+        
+        if progress_dialog:
+            self._destroy_progress_dialog(progress_dialog)
+
+    def load_profile_for_editing(self, profile: DocumentProfile, progress_dialog: Optional[ProgressDialog]):
+        # Configurações imediatas de UI (Leves)
         self.document_profile_name_var.set(profile.name)
         self.pdf_path = profile.pdf_path
         self.field_mappings = profile.field_mappings
         self.page_format = profile.page_format
         self.page_orientation = profile.page_orientation
         
-        # Atualiza os controles de formato
         self.page_format_var.set(self.page_format)
         for label, orientation in self.PAGE_ORIENTATIONS:
             if orientation == self.page_orientation:
@@ -312,14 +335,20 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.profile_name_entry.configure(state="disabled")
         self._set_pdf_button_text(self.pdf_path)
         self.save_button.configure(text=strings.DOC_SAVE_CHANGES, command=lambda: self._save_profile(is_editing=True))
-        
-        self.total_pages = get_pdf_page_count(self.pdf_path)
-        self.current_page_index = 0
-        self._render_pdf_image(progress_dialog)
-        
-        self._on_profile_select(profile.spreadsheet_profile_name)
-        self._on_select_to_title(profile.title_column)
-        self._update_mapping_display()
+
+        # Carregamento pesado em background usando WorkerThread
+        worker = WorkerThread(
+            target=self._load_profile_data_worker,
+            args=(profile,),
+            on_finish=lambda res: self.after(0, lambda: self._on_profile_load_finished(res, profile, progress_dialog)),
+            on_error=lambda e: self.after(0, lambda: self._on_load_error(e, progress_dialog))
+        )
+        worker.start()
+
+    def _on_load_error(self, error, progress_dialog: Optional[ProgressDialog]):
+        if progress_dialog:
+            self._destroy_progress_dialog(progress_dialog)
+        messagebox.showerror(strings.ERROR_TITLE, f"Erro ao carregar perfil: {error}")
 
     def clear_form(self):
         self.pdf_path = None
@@ -386,15 +415,38 @@ class DocumentProfileFrame(ctk.CTkFrame):
     def _on_select_to_spreadsheed(self, value: str):
         self._on_select(value, 'to_spreadsheed', 38)
 
+    def _on_pdf_selected_worker(self, pdf_path):
+        total_pages = get_pdf_page_count(pdf_path)
+        pdf_image = render_pdf_to_image(pdf_path, 0, dpi=150)
+        return total_pages, pdf_image
+
+    def _on_pdf_selected_finished(self, result, pdf_path, progress_dialog):
+        total_pages, pdf_image = result
+        self.total_pages = total_pages
+        self.pdf_image = pdf_image
+        self.current_page_index = 0
+        
+        self.document_profile_name_var.set(os.path.basename(pdf_path).split('.')[0])
+        self.select_pdf_button.configure(text=strings.DOC_PDF_SELECTED.format(os.path.basename(pdf_path)))
+        
+        self.pdf_canvas_label.place_forget()
+        self._update_page_controls()
+        self._on_canvas_resize()
+        self._destroy_progress_dialog(progress_dialog)
+
     def _select_pdf(self):
         pdf_path = select_file([(strings.FILE_FILTERS_PDF, "*.pdf")])
         if pdf_path:
             self.pdf_path = pdf_path
-            self.total_pages = get_pdf_page_count(pdf_path)
-            self.current_page_index = 0
-            self.document_profile_name_var.set(os.path.basename(pdf_path).split('.')[0] + "_DocProfile")
-            self.select_pdf_button.configure(text=strings.DOC_PDF_SELECTED.format(os.path.basename(pdf_path)))
-            self._render_pdf_image()
+            progress = ProgressDialog(self, title=strings.PROGRESS_LOADING_PDF, message=strings.PROGRESS_WAIT)
+            
+            worker = WorkerThread(
+                target=self._on_pdf_selected_worker,
+                args=(pdf_path,),
+                on_finish=lambda res: self.after(0, lambda: self._on_pdf_selected_finished(res, pdf_path, progress)),
+                on_error=lambda e: self.after(0, lambda: self._on_load_error(e, progress))
+            )
+            worker.start()
 
     def _handle_render_pdf_result(self, progress_dialog):
         self._destroy_progress_dialog(progress_dialog)
@@ -409,15 +461,27 @@ class DocumentProfileFrame(ctk.CTkFrame):
             self.pdf_canvas_label.place(relx=0.5, rely=0.5, anchor="center")
             return False
 
-    def _render_pdf_to_image_thread(self, pdf_path, page_index, progress_dialog):
-        self.pdf_image = render_pdf_to_image(pdf_path, page_index, dpi=150)
-        self.after(50, lambda: self._handle_render_pdf_result(progress_dialog))
 
-    def _render_pdf_image(self, progress_dialog=Optional[ProgressDialog]):
+
+    def _render_pdf_image_worker(self, pdf_path, page_index):
+        return render_pdf_to_image(pdf_path, page_index, dpi=150)
+
+    def _on_render_finished(self, pdf_image, progress_dialog):
+        self.pdf_image = pdf_image
+        self._handle_render_pdf_result(progress_dialog)
+
+    def _render_pdf_image(self, progress_dialog: Optional[ProgressDialog] = None):
         if not self.pdf_path: return False
         if not progress_dialog:
             progress_dialog = ProgressDialog(self, title=strings.PROGRESS_LOADING_PDF, message=strings.PROGRESS_RENDERING_PAGE.format(self.current_page_index + 1))
-        threading.Thread(target=self._render_pdf_to_image_thread, args=(self.pdf_path, self.current_page_index, progress_dialog)).start()
+        
+        worker = WorkerThread(
+            target=self._render_pdf_image_worker,
+            args=(self.pdf_path, self.current_page_index),
+            on_finish=lambda res: self.after(0, lambda: self._on_render_finished(res, progress_dialog)),
+            on_error=lambda e: self.after(0, lambda: self._on_load_error(e, progress_dialog))
+        )
+        worker.start()
 
     def _on_canvas_resize(self, event=None):
         if not self.pdf_image: return
