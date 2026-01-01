@@ -8,12 +8,23 @@ from models import SpreadsheetProfile, DocumentProfile, ColumnMapping, PdfFieldM
 T = TypeVar('T', SpreadsheetProfile, DocumentProfile)
 
 class DataManager:
-    def __init__(self, base_dir: str = os.path.expanduser("~/.pdf_generator_app")):
+    def __init__(self, base_dir: str = None):
+        if base_dir is None:
+            # No Windows, usa AppData/Roaming para dados do app
+            appdata = os.environ.get('APPDATA')
+            if appdata:
+                base_dir = os.path.join(appdata, "PDF_Generator")
+            else:
+                base_dir = os.path.expanduser("~/.pdf_generator_app")
+                
         self.base_dir = base_dir
         self.profiles_dir = os.path.join(base_dir, "profiles")
         self.templates_dir = os.path.join(base_dir, "templates")
         self.license_file = os.path.join(base_dir, "license.json")
         self.logo_file = os.path.join(base_dir, "company_logo.png")
+        
+        # Garante que todos os diretórios existam
+        os.makedirs(self.base_dir, exist_ok=True)
         os.makedirs(self.profiles_dir, exist_ok=True)
         os.makedirs(self.templates_dir, exist_ok=True)
         

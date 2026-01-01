@@ -91,7 +91,9 @@ def generate_pdf_with_template(
     doc = fitz.open(document_profile.pdf_path)
     total_pages = len(doc)
     
-    temp_dir = os.path.join(os.path.dirname(__file__), ".temp")
+    # Usa uma pasta temporária no diretório do usuário para evitar erros de permissão
+    from core.data_manager import data_manager
+    temp_dir = os.path.join(data_manager.base_dir, ".temp")
     os.makedirs(temp_dir, exist_ok=True)
 
     # Group mappings by page
