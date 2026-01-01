@@ -285,7 +285,8 @@ class App(ctk.CTk):
 
         elif name in ("document_create", "document_edit"):
             if profile_to_edit and name == "document_edit":
-                self.document_create_frame.load_profile_for_editing(profile_to_edit)
+                progress_dialog = ProgressDialog(self, title=strings.PROGRESS_LOADING_PDF, message=strings.PROGRESS_LOADING_PROFILE)
+                self.document_create_frame.load_profile_for_editing(profile_to_edit, progress_dialog)
             else:
                 self.document_create_frame.clear_form()
             self.document_create_frame.grid(row=0, column=1, sticky="nsew")

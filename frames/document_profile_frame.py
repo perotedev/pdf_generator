@@ -32,6 +32,13 @@ class DocumentProfileFrame(ctk.CTkFrame):
         name = self._set_text_wrap(name, 24)
         self.select_pdf_button.configure(text=strings.DOC_PDF_SELECTED.format(name))
 
+    def _destroy_progress_dialog(self, progress_dialog: ProgressDialog):
+        if progress_dialog.winfo_exists():
+            try: progress_dialog.grab_release()
+            except: pass
+            progress_dialog.withdraw()
+            progress_dialog.after(200, lambda: progress_dialog.destroy())
+
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         # Configuração do grid principal
@@ -284,7 +291,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         elif event.num == 5 or event.delta < 0:
             self.pdf_canvas.yview_scroll(1, "units")
 
-    def load_profile_for_editing(self, profile: DocumentProfile):
+    def load_profile_for_editing(self, profile: DocumentProfile, progress_dialog:Optional[ProgressDialog]):
         self.document_profile_name_var.set(profile.name)
         self.pdf_path = profile.pdf_path
         self.field_mappings = profile.field_mappings
@@ -308,7 +315,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         
         self.total_pages = get_pdf_page_count(self.pdf_path)
         self.current_page_index = 0
-        self._render_pdf_image()
+        self._render_pdf_image(progress_dialog)
         
         self._on_profile_select(profile.spreadsheet_profile_name)
         self._on_select_to_title(profile.title_column)
@@ -390,11 +397,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
             self._render_pdf_image()
 
     def _handle_render_pdf_result(self, progress_dialog):
-        if progress_dialog.winfo_exists():
-            try: progress_dialog.grab_release()
-            except: pass
-            progress_dialog.withdraw()
-            progress_dialog.after(200, lambda: progress_dialog.destroy())
+        self._destroy_progress_dialog(progress_dialog)
         
         if self.pdf_image:
             self.pdf_canvas_label.place_forget()
@@ -410,9 +413,10 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.pdf_image = render_pdf_to_image(pdf_path, page_index, dpi=150)
         self.after(50, lambda: self._handle_render_pdf_result(progress_dialog))
 
-    def _render_pdf_image(self):
+    def _render_pdf_image(self, progress_dialog=Optional[ProgressDialog]):
         if not self.pdf_path: return False
-        progress_dialog = ProgressDialog(self, title=strings.PROGRESS_LOADING_PDF, message=strings.PROGRESS_RENDERING_PAGE.format(self.current_page_index + 1))
+        if not progress_dialog:
+            progress_dialog = ProgressDialog(self, title=strings.PROGRESS_LOADING_PDF, message=strings.PROGRESS_RENDERING_PAGE.format(self.current_page_index + 1))
         threading.Thread(target=self._render_pdf_to_image_thread, args=(self.pdf_path, self.current_page_index, progress_dialog)).start()
 
     def _on_canvas_resize(self, event=None):

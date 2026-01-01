@@ -119,6 +119,7 @@ class Strings:
     # Diálogos de progresso
     PROGRESS_PROCESSING = "Processando..."
     PROGRESS_WAIT = "Por favor, aguarde..."
+    PROGRESS_LOADING_PROFILE = "Carregando perfil..."
     PROGRESS_LOADING_PDF = "Carregando PDF..."
     PROGRESS_RENDERING_PAGE = "Renderizando página {}..."
     PROGRESS_READING_SPREADSHEET = "Lendo planilha..."
