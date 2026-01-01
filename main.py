@@ -3,12 +3,30 @@ import sys
 import os
 from pathlib import Path
 import webbrowser
+import ctypes
 
 # Import splash screen module (only available when running as executable)
 try:
     import pyi_splash
 except ImportError:
     pyi_splash = None
+
+# DPI Awareness para evitar que a splash mude de tamanho no Windows
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
+def update_splash_status(text):
+    if pyi_splash:
+        try:
+            pyi_splash.update_text(text)
+        except Exception:
+            pass
+    print(f"Splash Status: {text}")
 
 from dialogs.license_dialog import LicenseDialog
 
@@ -48,6 +66,8 @@ import threading
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+        # Não usamos withdraw() aqui para evitar que o Windows encerre o processo
+        # em algumas situações de transição de splash.
 
         # --- Ícone ---
         assets_dir = Path(__file__).resolve().parent / "assets"
@@ -192,27 +212,24 @@ class App(ctk.CTk):
         self.batch_frame = BatchGenerationFrame(self, fg_color="transparent")
         self.list_frame = PdfListFrame(self, fg_color="transparent")
 
-        if pyi_splash:
-            pyi_splash.update_text("Carregando logo...")
+        update_splash_status("Carregando logo...")
         self.load_logo()
         
-        if pyi_splash:
-            pyi_splash.update_text("Iniciando interface...")
+        update_splash_status("Iniciando interface...")
         self.select_frame_by_name("list")
         
-        if pyi_splash:
-            pyi_splash.update_text("Verificando licença...")
+        update_splash_status("Verificando licença...")
         self.update_license_status()
         
         # Start background license validation
         threading.Thread(target=self.validate_license_startup, daemon=True).start()
 
-        # Close splash screen when main window is ready
+        # Fecha a splash screen após o carregamento
         if pyi_splash:
-            import time
-            pyi_splash.update_text("Pronto!")
-            time.sleep(0.5)
-            pyi_splash.close()
+            try:
+                pyi_splash.close()
+            except Exception:
+                pass
 
     # ---------- REFRESH ----------
     def refresh_data(self):
