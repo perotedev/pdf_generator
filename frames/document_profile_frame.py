@@ -608,6 +608,33 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self._update_mapping_display()
         self._on_canvas_resize()
 
+    def clear_form(self):
+        self.pdf_path = None
+        self.pdf_image = None
+        self.tk_image = None
+        self.current_page_index = 0
+        self.total_pages = 0
+        self.field_mappings = []
+        self.document_profile_name_var.set("")
+        self.label_values["to_spreadsheed"].set(strings.DOC_SELECT_SPREADSHEET_PROFILE)
+        self.label_values["to_title"].set(strings.DOC_SELECT_COLUMN)
+        self.label_values["to_map"].set(strings.DOC_SELECT_COLUMN)
+        self.page_format_var.set("A4")
+        self.page_orientation_var.set(strings.DOC_ORIENTATION_PORTRAIT)
+        self.select_pdf_button.configure(text=strings.DOC_SELECT_PDF)
+        self.profile_name_entry.configure(state="normal")
+        self.save_button.configure(text=strings.DOC_SAVE_PROFILE, command=self._save_profile)
+        
+        # Limpa o canvas
+        self.pdf_canvas.delete("all")
+        self.pdf_canvas_label.grid(row=0, column=0, sticky="nsew")
+        self.page_label.configure(text=strings.DOC_PAGE_LABEL.format(0, 0))
+        self.prev_page_button.configure(state="disabled")
+        self.next_page_button.configure(state="disabled")
+        
+        self._update_mapping_display()
+        self._load_profiles()
+
     def _save_profile(self, is_editing=False):
         profile_name = self.document_profile_name_var.get().strip()
         spreadsheet_profile_name = self.real_values["to_spreadsheed"]

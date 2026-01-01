@@ -1,10 +1,9 @@
 import customtkinter as ctk
-import os
-from datetime import datetime
 from resources.icons import icons
 from typing import List
 import math
-
+from tkinter import messagebox
+from resources.strings import strings
 from core.data_manager import data_manager
 from utils.explorer_utils import open_file, open_file_directory, open_folder
 
@@ -14,10 +13,10 @@ class PdfListFrame(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
-        self.all_pdfs: List[str] = []
-        self.filtered_pdfs: List[str] = []
+        self.all_pdfs: List[dict] = []
+        self.filtered_pdfs: List[dict] = []
         self.current_page = 1
-        self.items_per_page = 20
+        self.items_per_page = 15
         
         self.search_var = ctk.StringVar()
         self.year_var = ctk.StringVar(value="Todos")
@@ -114,7 +113,7 @@ class PdfListFrame(ctk.CTkFrame):
         y = None if self.year_var.get() == "Todos" else self.year_var.get()
         m = None if self.month_var.get() == "Todos" else self.month_var.get()
         
-        self.all_pdfs = data_manager.get_generated_pdfs(year=y, month=m)
+        self.all_pdfs = data_manager.get_generated_pdfs_info(year=y, month=m)
         self._filter_pdfs()
 
     def _on_filter_change(self):
@@ -126,7 +125,7 @@ class PdfListFrame(ctk.CTkFrame):
         if search_term:
             self.filtered_pdfs = [
                 pdf for pdf in self.all_pdfs 
-                if os.path.basename(pdf).lower().find(search_term) != -1
+                if pdf["name"].lower().find(search_term) != -1
             ]
         else:
             self.filtered_pdfs = self.all_pdfs
@@ -222,28 +221,18 @@ class PdfListFrame(ctk.CTkFrame):
         ctk.CTkLabel(self.main_container, text="Ano", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=1, padx=10, pady=5)
         ctk.CTkLabel(self.main_container, text="Mês", font=ctk.CTkFont(weight="bold"), width=40).grid(row=0, column=2, padx=10, pady=5)
         ctk.CTkLabel(self.main_container, text="Data Criação", font=ctk.CTkFont(weight="bold"), width=120).grid(row=0, column=3, padx=10, pady=5)
-        ctk.CTkLabel(self.main_container, text="Ação", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=4, padx=10, pady=5, sticky="e")
+        ctk.CTkLabel(self.main_container, text="Ação", font=ctk.CTkFont(weight="bold"), width=60).grid(row=0, column=4, padx=10, pady=5, sticky="w")
         
         self.file_labels: List[ctk.CTkLabel] = []
 
         # Data Rows
-        for i, pdf_path in enumerate(page_items):
+        for i, pdf_info in enumerate(page_items):
             row = i + 1
-            filename = os.path.basename(pdf_path)
-            
-            path_parts = os.path.normpath(pdf_path).split(os.sep)
-            try:
-                file_year = path_parts[-3]
-                file_month = path_parts[-2]
-            except IndexError:
-                file_year = "-"
-                file_month = "-"
-
-            try:
-                timestamp = os.path.getctime(pdf_path)
-                creation_date = datetime.fromtimestamp(timestamp).strftime("%d/%m/%y %H:%M")
-            except:
-                creation_date = "-"
+            pdf_path = pdf_info["path"]
+            filename = pdf_info["name"]
+            file_year = pdf_info["year"]
+            file_month = pdf_info["month"]
+            creation_date = pdf_info["creation_date"]
 
             file_label = ctk.CTkLabel(self.main_container, text=filename, justify="left")
             file_label.grid(row=row, column=0, padx=10, pady=5, sticky="w")
@@ -253,7 +242,7 @@ class PdfListFrame(ctk.CTkFrame):
             ctk.CTkLabel(self.main_container, text=file_month, width=40).grid(row=row, column=2, padx=10, pady=5)
             ctk.CTkLabel(self.main_container, text=creation_date, width=60).grid(row=row, column=3, padx=10, pady=5)
 
-            btn_frame = ctk.CTkFrame(self.main_container, fg_color="transparent", width=60)
+            btn_frame = ctk.CTkFrame(self.main_container, fg_color="transparent", width=90)
             btn_frame.grid(row=row, column=4, padx=10, pady=5, sticky="e")
             
             open_file_btn = ctk.CTkButton(
@@ -278,7 +267,19 @@ class PdfListFrame(ctk.CTkFrame):
                 text_color=("black", "white"), 
                 font=("Arial", 14)
             )
-            open_folder_btn.pack(side="left", padx=(5,0))
+            open_folder_btn.pack(side="left", padx=2)
+
+            delete_file_btn = ctk.CTkButton(
+                btn_frame, 
+                text=f"{icons.ICON_DELETE}",
+                width=31, 
+                command=lambda p=pdf_path: self._delete_file(p), 
+                fg_color="transparent",
+                border_width=2,
+                text_color=("black", "white"), 
+                font=("Arial", 9)
+            )
+            delete_file_btn.pack(side="left", padx=2)
 
         self.list_frame.update_idletasks()
         self.list_frame._parent_canvas.configure(scrollregion=self.list_frame._parent_canvas.bbox("all"))
@@ -290,6 +291,14 @@ class PdfListFrame(ctk.CTkFrame):
     
     def _open_folder(self, path: str):
         open_folder(path)
+
+    def _delete_file(self, pdf_path: str):
+        if messagebox.askyesno(strings.CONFIRM_TITLE, strings.CONFIRM_DELETE_PDF):
+            if data_manager.delete_generated_pdf(pdf_path):
+                messagebox.showinfo(strings.SUCCESS_TITLE, "Arquivo excluído com sucesso.")
+                self._load_pdfs()
+            else:
+                messagebox.showerror(strings.ERROR_TITLE, "Não foi possível excluir o arquivo.")
 
     def _open_pdf_directory(self):
        pdf_dir = data_manager.pdf_base_dir

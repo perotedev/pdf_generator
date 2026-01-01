@@ -210,6 +210,9 @@ class App(ctk.CTk):
             self.batch_frame,
             self.list_frame
         ):
+            # Reset form values when leaving a frame
+            if hasattr(frame, "clear_form") and frame.winfo_viewable():
+                frame.clear_form()
             frame.grid_forget()
 
         if name == "spreadsheet_list":

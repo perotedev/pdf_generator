@@ -230,3 +230,13 @@ class BatchGenerationFrame(ctk.CTkFrame):
     
     def load_profiles(self):
         self._load_profiles()
+
+    def clear_form(self):
+        self.selected_document_profile = None
+        self.spreadsheet_profile = None
+        self.spreadsheet_path = None
+        self.file_path_label.configure(text="Arquivo Selecionado: Nenhum")
+        self.associated_profile_label.configure(text="Perfil de Planilha Associado: Nenhum", text_color=("black", "white"))
+        self.status_var.set("Pronto para gerar.")
+        self._load_profiles()
+        self._update_generate_button_state()

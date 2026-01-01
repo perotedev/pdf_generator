@@ -62,10 +62,14 @@ def bind_mousewheel_to_scrollable_frame(scrollable_frame):
     scrollable_frame.bind("<Button-4>", _on_mousewheel)    # Linux scroll up
     scrollable_frame.bind("<Button-5>", _on_mousewheel)    # Linux scroll down
     
-    # Também vincula aos filhos do frame
-    for child in scrollable_frame.winfo_children():
-        child.bind("<MouseWheel>", _on_mousewheel)
-        child.bind("<Button-4>", _on_mousewheel)
-        child.bind("<Button-5>", _on_mousewheel)
+    # Também vincula aos filhos do frame recursivamente
+    def _bind_recursive(widget):
+        widget.bind("<MouseWheel>", _on_mousewheel)
+        widget.bind("<Button-4>", _on_mousewheel)
+        widget.bind("<Button-5>", _on_mousewheel)
+        for child in widget.winfo_children():
+            _bind_recursive(child)
+
+    _bind_recursive(scrollable_frame)
     
     return _on_mousewheel

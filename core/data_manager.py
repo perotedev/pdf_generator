@@ -146,20 +146,37 @@ class DataManager:
         import zipfile
         import shutil
         with zipfile.ZipFile(zip_path, 'r') as zipf:
+            # Primeiro extrair templates
             for member in zipf.infolist():
-                if member.filename.startswith("profiles/") and member.filename.endswith(".json"):
-                    filename = os.path.basename(member.filename)
-                    target_path = os.path.join(self.profiles_dir, filename)
-                    if not os.path.exists(target_path):
-                        with zipf.open(member) as source, open(target_path, "wb") as target:
-                            shutil.copyfileobj(source, target)
-                elif member.filename.startswith("templates/"):
+                if member.filename.startswith("templates/"):
                     filename = os.path.basename(member.filename)
                     if not filename: continue
                     target_path = os.path.join(self.templates_dir, filename)
                     if not os.path.exists(target_path):
                         with zipf.open(member) as source, open(target_path, "wb") as target:
                             shutil.copyfileobj(source, target)
+            
+            # Depois extrair e atualizar perfis
+            for member in zipf.infolist():
+                if member.filename.startswith("profiles/") and member.filename.endswith(".json"):
+                    filename = os.path.basename(member.filename)
+                    target_path = os.path.join(self.profiles_dir, filename)
+                    
+                    # Extrair conteúdo para memória para processar
+                    with zipf.open(member) as source:
+                        try:
+                            data = json.load(source)
+                            # Se for um perfil de documento, atualizar o pdf_path
+                            if "pdf_path" in data:
+                                pdf_filename = os.path.basename(data["pdf_path"])
+                                # O novo caminho deve ser dentro da pasta templates do usuário atual
+                                data["pdf_path"] = os.path.join(self.templates_dir, pdf_filename)
+                            
+                            # Salvar o arquivo atualizado
+                            with open(target_path, "w", encoding="utf-8") as target:
+                                json.dump(data, target, indent=4, ensure_ascii=False)
+                        except Exception as e:
+                            print(f"Erro ao processar perfil importado {filename}: {e}")
 
     def get_generated_pdfs_dir(self, base_date: datetime = None) -> str:
         # Estrutura PDF_GENERATOR/ANO/MES
@@ -171,24 +188,19 @@ class DataManager:
         os.makedirs(pdf_dir, exist_ok=True)
         return pdf_dir
 
-    def get_generated_pdfs(self, year: str = None, month: str = None) -> List[str]:
-        pdf_files = []
-        
-        # Se ano e mês forem fornecidos, busca apenas naquela pasta
-        if year and month:
-            target_dir = os.path.join(self.pdf_base_dir, year, month)
-            if os.path.exists(target_dir):
-                pdf_files = [os.path.join(target_dir, f) for f in os.listdir(target_dir) if f.endswith(".pdf")]
-        else:
-            # Caso contrário, percorre toda a estrutura
-            for root, dirs, files in os.walk(self.pdf_base_dir):
-                for f in files:
-                    if f.endswith(".pdf"):
-                        pdf_files.append(os.path.join(root, f))
-        
-        # Sort by modification time (newest first)
-        pdf_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-        return pdf_files
+    def get_generated_pdfs_info(self, year: str = None, month: str = None) -> List[Dict[str, Any]]:
+        from utils.directory_utils import get_pdf_files_info
+        return get_pdf_files_info(self.pdf_base_dir, year, month)
+
+    def delete_generated_pdf(self, pdf_path: str) -> bool:
+        try:
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                return True
+            return False
+        except Exception as e:
+            print(f"Error deleting PDF {pdf_path}: {e}")
+            return False
 
     def get_available_years(self) -> List[str]:
         if not os.path.exists(self.pdf_base_dir):
