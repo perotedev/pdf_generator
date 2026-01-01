@@ -21,12 +21,8 @@ except Exception:
         pass
 
 def update_splash_status(text):
-    if pyi_splash:
-        try:
-            pyi_splash.update_text(text)
-        except Exception:
-            pass
-    print(f"Splash Status: {text}")
+    # Texto de carregamento removido conforme solicitado
+    print(f"Loading: {text}")
 
 from dialogs.license_dialog import LicenseDialog
 

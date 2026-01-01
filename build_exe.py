@@ -36,6 +36,7 @@ def build():
         "--windowed",
         f"--name={app_name}",
         f"--icon={icon_path}",
+        "--splash=assets/splash_min.png",
         # Inclui os diretórios de recursos e módulos
         "--add-data=assets;assets",
         "--add-data=resources;resources",

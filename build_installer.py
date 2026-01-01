@@ -23,7 +23,7 @@ def build():
         '--add-data=resources;resources',
         '--add-data=.env;.',
         '--icon=assets/pdf_generator.ico',
-        '--splash=assets/splash_with_space.png',
+        '--splash=assets/splash_min.png',
         '--clean',
         '--noconfirm',
     ]
