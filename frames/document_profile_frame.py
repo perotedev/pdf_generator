@@ -203,8 +203,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.pdf_canvas.bind_all("<Button-4>", self._on_mousewheel)   # Linux scroll up
         self.pdf_canvas.bind_all("<Button-5>", self._on_mousewheel)   # Linux scroll down
 
-        self.pdf_canvas_label = ctk.CTkLabel(self.pdf_canvas, text=strings.DOC_SELECT_PDF_VIEWER)
-        self.pdf_canvas_label.place(relx=0.5, rely=0.5, anchor="center")
+        self._show_canvas_instruction()
 
         self._load_profiles()
         self._update_mapping_display()
@@ -305,11 +304,14 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.current_page_index = 0
         
         # Atualiza UI
+        
         self._on_profile_select(profile.spreadsheet_profile_name)
         self._on_select_to_title(profile.title_column)
         self._update_mapping_display()
         self._update_page_controls()
-        self._on_canvas_resize()
+        
+        # Força o resize para desenhar a imagem e garantir que o label suma
+        self.after(10, self._on_canvas_resize)
         
         if progress_dialog:
             self._destroy_progress_dialog(progress_dialog)
@@ -364,10 +366,18 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.profile_name_entry.configure(state="normal")
         self.select_pdf_button.configure(state="normal", text=strings.DOC_SELECT_PDF)
         self.save_button.configure(text=strings.DOC_SAVE_PROFILE, command=self._save_profile)
+        
+        # Reinicialização total do estado visual
         self.pdf_image = None
         self.tk_image = None
         self.pdf_canvas.delete("all")
-        self.pdf_canvas_label.place(relx=0.5, rely=0.5, anchor="center")
+        self.pdf_canvas.xview_moveto(0)
+        self.pdf_canvas.yview_moveto(0)
+        self.pdf_canvas.configure(scrollregion=(0, 0, 0, 0))
+        
+        # Garante que a instrução seja exibida
+        self._show_canvas_instruction()
+        
         self._update_page_controls()
         self._load_profiles()
         self._update_mapping_display()
@@ -426,12 +436,16 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self.pdf_image = pdf_image
         self.current_page_index = 0
         
-        self.document_profile_name_var.set(os.path.basename(pdf_path).split('.')[0])
+        self.document_profile_name_var.set(os.path.basename(pdf_path).split('.')[0] + "_DocProfile")
         self.select_pdf_button.configure(text=strings.DOC_PDF_SELECTED.format(os.path.basename(pdf_path)))
         
-        self.pdf_canvas_label.place_forget()
+        # Remove o label de instrução e limpa o canvas antes de desenhar
+        
+        self.pdf_canvas.delete("all")
+        
         self._update_page_controls()
-        self._on_canvas_resize()
+        # Força o resize para desenhar a imagem e garantir que o label suma
+        self.after(10, self._on_canvas_resize)
         self._destroy_progress_dialog(progress_dialog)
 
     def _select_pdf(self):
@@ -452,13 +466,13 @@ class DocumentProfileFrame(ctk.CTkFrame):
         self._destroy_progress_dialog(progress_dialog)
         
         if self.pdf_image:
-            self.pdf_canvas_label.place_forget()
+            
             self._update_page_controls()
             self._on_canvas_resize()
             return True
         else:
             messagebox.showerror(strings.ERROR_RENDER_PDF_TITLE, strings.ERROR_RENDER_PDF_MESSAGE)
-            self.pdf_canvas_label.place(relx=0.5, rely=0.5, anchor="center")
+            self._show_canvas_instruction()
             return False
 
 
@@ -468,6 +482,7 @@ class DocumentProfileFrame(ctk.CTkFrame):
 
     def _on_render_finished(self, pdf_image, progress_dialog):
         self.pdf_image = pdf_image
+        
         self._handle_render_pdf_result(progress_dialog)
 
     def _render_pdf_image(self, progress_dialog: Optional[ProgressDialog] = None):
@@ -483,8 +498,30 @@ class DocumentProfileFrame(ctk.CTkFrame):
         )
         worker.start()
 
+    def _show_canvas_instruction(self):
+        """Desenha o texto de instrução diretamente no canvas"""
+        self.pdf_canvas.delete("all")
+        width = self.pdf_canvas.winfo_width()
+        height = self.pdf_canvas.winfo_height()
+        
+        # Se o canvas ainda não foi renderizado (width=1), usa valores padrão
+        if width <= 1: width = 600
+        if height <= 1: height = 600
+        
+        self.pdf_canvas.create_text(
+            width // 2, 
+            height // 2, 
+            text=strings.DOC_SELECT_PDF_VIEWER,
+            fill="gray50",
+            font=("Arial", 14),
+            justify="center",
+            tags="instruction_text"
+        )
+
     def _on_canvas_resize(self, event=None):
-        if not self.pdf_image: return
+        if not self.pdf_image:
+            self._show_canvas_instruction()
+            return
 
         canvas_width = self.pdf_canvas.winfo_width()
         if canvas_width <= 1: return
@@ -695,7 +732,6 @@ class DocumentProfileFrame(ctk.CTkFrame):
         
         # Limpa o canvas
         self.pdf_canvas.delete("all")
-        self.pdf_canvas_label.grid(row=0, column=0, sticky="nsew")
         self.page_label.configure(text=strings.DOC_PAGE_LABEL.format(0, 0))
         self.prev_page_button.configure(state="disabled")
         self.next_page_button.configure(state="disabled")
